@@ -34,12 +34,13 @@ class Domain(Entity):
 
 
     def __repr__(self):
-        return "<Domain name={} descr={} type={} align={} width={} props={} char_length={} tlength={} tscale={}>".format(
+        return "<Domain name={} descr={} type={} align={} width={} precision={} props={} char_length={} tlength={} tscale={}>".format(
                 self.name,
                 self.descr,
                 self.type,
                 self.align,
                 self.width,
+                self.precision,
                 self.props,
                 self.char_length,
                 self.length,

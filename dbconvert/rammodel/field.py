@@ -15,14 +15,15 @@ class Field(Entity):
         self.name = None
         self.rname = None
         self.domain = None
-        self.props = None
         self.descr = None
+        self.props = None
+
 
     def __repr__(self):
-        return "<Field name={} rname={} domain={} props={} descr={}>".format(
+        return "<Field name={} rname={} domain={} descr={} props={}>".format(
                 self.name,
                 self.rname,
                 self.domain,
-                self.props,
-                self.descr
+                self.descr,
+                self.props
                 )

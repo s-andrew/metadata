@@ -16,18 +16,18 @@ class Constraint(Entity):
         self.name = None
         self.kind = None
         self.items = None
-        self.props = None
         self.reference_type = None
         self.reference = None
+        self.props = None
 
     def __repr__(self):
-        return "<Constraint name={} kind={} items={} props={} reference_type={} reference={} >".format(
+        return "<Constraint name={} kind={} items={} reference_type={} reference={} props={} >".format(
                 self.name,
                 self.kind,
                 self.items,
-                self.props,
                 self.reference_type,
-                self.reference
+                self.reference,
+                self.props
                 )
 
 

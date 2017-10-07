@@ -253,12 +253,17 @@ class Parser():
             node.setAttribute("name", self.schema.name)
         if self.schema.descr is not None:
             node.setAttribute("description", self.schema.descr)
+        node.appendChild(xml.createElement("custom"))
+        domains = xml.createElement("domains")
 
         for domain in self._domainGenerator(xml):
-            node.appendChild(domain)
+            domains.appendChild(domain)
+        node.appendChild(domains)
 
+        tables = xml.createElement("tables")
         for table in self._tableGenerator(xml):
-            node.appendChild(table)
+            tables.appendChild(table)
+        node.appendChild(tables)
 
         xml.appendChild(node)
         return xml
@@ -284,12 +289,16 @@ class Parser():
                 node.setAttribute("align", domain.align)
             if domain.width is not None:
                 node.setAttribute("width", domain.width)
+            if domain.length is not None:
+                node.setAttribute("length", domain.length)
+            if domain.precision is not None:
+                node.setAttribute("precision", domain.precision)
             if domain.props is not None:
                 node.setAttribute("props", domain.props)
             if domain.char_length is not None:
                 node.setAttribute("char_length", domain.char_length)
-            if domain.length is not None:
-                node.setAttribute("length", domain.length)
+#            if domain.length is not None:
+#                node.setAttribute("length", domain.length)
             if domain.scale is not None:
                 node.setAttribute("scale", domain.scale)
             yield node
@@ -348,10 +357,11 @@ class Parser():
                 node.setAttribute("rname", field.rname)
             if field.domain is not None:
                 node.setAttribute("domain", field.domain)
-            if field.props is not None:
-                node.setAttribute("props", field.props)
             if field.descr is not None:
                 node.setAttribute("description", field.descr)
+            if field.props is not None:
+                node.setAttribute("props", field.props)
+
             yield node
 
     def _constraintGenerator(self, xml, table):
@@ -372,12 +382,14 @@ class Parser():
                 node.setAttribute("kind", constraint.kind)
             if constraint.items is not None:
                 node.setAttribute("items", constraint.items)
-            if constraint.props is not None:
-                node.setAttribute("props", constraint.props)
+#            if constraint.props is not None:
+#                node.setAttribute("props", constraint.props)
             if constraint.reference_type is not None:
                 node.setAttribute("reference_type", constraint.reference_type)
             if constraint.reference is not None:
                 node.setAttribute("reference", constraint.reference)
+            if constraint.props is not None:
+                node.setAttribute("props", constraint.props)
             yield node
 
     def _indexGenerator(self, xml, table):
@@ -405,3 +417,6 @@ class Parser():
                 yield node
             else:
                 raise ValueError("Error! Index does not contain fields")
+
+if __name__ == "__main__":
+    md.Element(1)
