@@ -1,9 +1,4 @@
-try:
-    from entity import Entity
-except ModuleNotFoundError:
-    from .entity import Entity
-
-class Schema(Entity):
+class Schema:
 
     def __init__(self):
         self.fulltext_engine = None
