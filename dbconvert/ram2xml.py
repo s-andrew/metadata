@@ -79,8 +79,8 @@ def _domainGenerator(xml, domains):
             node.setAttribute("props", domain.getPropsAsStr())
         if domain.char_length is not None:
             node.setAttribute("char_length", domain.char_length)
-#            if domain.length is not None:
-#                node.setAttribute("length", domain.length)
+        if domain.length is not None:
+            node.setAttribute("length", domain.length)
         if domain.scale is not None:
             node.setAttribute("scale", domain.scale)
         yield node
