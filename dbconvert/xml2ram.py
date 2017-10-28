@@ -67,7 +67,19 @@ def _parseDomains(xml):
             elif attrName.lower() == "precision":
                 tmp.precision = attrValue
             elif attrName.lower() == "props":
-                tmp.setPropsFromStr(attrValue)
+                for prop in attrValue.split(", "):
+                    if prop == "show_null":
+                        tmp.show_null = True
+                    elif prop == "summable":
+                        tmp.summable = True
+                    elif prop == "case_sensitive":
+                        tmp.case_sensitive = True
+                    elif prop == "show_lead_nulls":
+                        tmp.show_lead_nulls = True
+                    elif prop == "thousands_separator":
+                        tmp.thousands_separator = True
+                    else:
+                        raise ValueError("Invalid format of props string: {}".format(attrValue))
             elif attrName.lower() == "char_length":
                 tmp.char_length = attrValue
             elif attrName.lower() == "length":
@@ -101,7 +113,15 @@ def _parseTables(xml):
             elif attrName.lower() == "description":
                 tmp.descr = attrValue
             elif attrName.lower() == "props":
-                tmp.setPropsFromStr(attrValue)
+                for prop in attrValue.split(", "):
+                    if prop == "add":
+                        tmp.add = True
+                    elif prop == "edit":
+                        tmp.edit = True
+                    elif prop == "delete":
+                        tmp.delete = True
+                    else:
+                        raise ValueError("Invalid format of props string: {}".format(attrValue))
             elif attrName.lower() == "ht_table_flags":
                 tmp.ht_table_flags = attrValue
             elif attrName.lower() == "access_level":
@@ -141,7 +161,23 @@ def _parseFields(xml):
             elif attrName.lower() == "domain":
                 tmp.domain = attrValue
             elif attrName.lower() == "props":
-                tmp.setPropsFromStr(attrValue)
+                for prop in attrValue.split(", "):
+                    if prop == "input":
+                        tmp.input = True
+                    elif prop == "edit":
+                        tmp.edit = True
+                    elif prop == "show_in_grid":
+                        tmp.show_in_grid = True
+                    elif prop == "show_in_details":
+                        tmp.show_in_details = True
+                    elif prop == "is_mean":
+                        tmp.is_mean = True
+                    elif prop == "autocalculated":
+                        tmp.autocalculated = True
+                    elif prop == "required":
+                        tmp.required = True
+                    else:
+                        raise ValueError("Invalid format of props string: {}".format(attrValue))
             elif attrName.lower() == "description":
                 tmp.descr = attrValue
             else:
@@ -176,7 +212,15 @@ def _parseConstraints(xml):
             elif attrName.lower() == "items":
                 tmp.items = attrValue
             elif attrName.lower() == "props":
-                tmp.setPropsFromStr(attrValue)
+                for prop in attrValue.split(", "):
+                    if prop == "has_value_edit":
+                        tmp.has_value_edit = True
+                    elif prop == "cascading_delete":
+                        tmp.cascading_delete = True
+                    elif prop == "full_cascading_delete":
+                        tmp.full_cascading_delete = True
+                    else:
+                        raise ValueError("Invalid format of props string: {}".format(attrValue))
             elif attrName.lower() == "reference_type":
                 tmp.reference_type = attrValue
             elif attrName.lower() == "reference":
@@ -214,14 +258,14 @@ def _parseIndexes(xml):
             if attrName.lower() == "field":
                 pass
             elif attrName.lower() == "props":
-                tmp.setPropsFromStr(attrValue)
+                for prop in attrValue.split(", "):
+                    if prop == "fulltext":
+                        tmp.fulltext = True
+                    elif prop == "uniqueness":
+                        tmp.uniqueness = True
+                    else:
+                        raise ValueError("Invalid format of props string: {}".format(attrValue))
             else:
                 raise ValueError("In tag \"{}\" incorrect attribute name \"{}\"".format(index.nodeName, attrName))
         indexList.append(tmp)
     return indexList
-
-
-if __name__ == "__main__":
-    xml = md.parse("tasks.xml")
-    s = xml2ram(xml)
-    print(s.fullPrintStr())

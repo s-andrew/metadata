@@ -11,6 +11,7 @@ try:
 except ModuleNotFoundError:
     from rammodel import Domain, Table, Field, Index, Constraint, Schema
 
+__all__ = ["ram2xml"]
 
 def ram2xml(schema):
     """
@@ -75,8 +76,21 @@ def _domainGenerator(xml, domains):
             node.setAttribute("length", domain.length)
         if domain.precision is not None:
             node.setAttribute("precision", domain.precision)
-        if domain.getPropsAsStr() != "":
-            node.setAttribute("props", domain.getPropsAsStr())
+        propsList = []
+        if domain.show_null:
+            propsList.append("show_null")
+        if domain.summable:
+            propsList.append("summable")
+        if domain.case_sensitive:
+            propsList.append("case_sensitive")
+        if domain.show_lead_nulls:
+            propsList.append("show_lead_nulls")
+        if domain.thousands_separator:
+            propsList.append("thousands_separator")
+        if propsList != []:
+            node.setAttribute("props", ", ".join(propsList))
+
+
         if domain.char_length is not None:
             node.setAttribute("char_length", domain.char_length)
         if domain.length is not None:
@@ -100,8 +114,16 @@ def _tableGenerator(xml, tables):
             node.setAttribute("name", table.name)
         if  table.descr is not None:
             node.setAttribute("description", table.descr)
-        if table.getPropsAsStr() != "":
-            node.setAttribute("props", table.getPropsAsStr())
+        propsList = []
+        if table.add:
+            propsList.append("add")
+        if table.edit:
+            propsList.append("edit")
+        if table.delete:
+            propsList.append("delete")
+        if propsList != []:
+            node.setAttribute("props", ", ".join(propsList))
+
         if table.ht_table_flags is not None:
             node.setAttribute("ht_table_flags", table.ht_table_flags)
         if table.access_level is not None:
@@ -141,8 +163,23 @@ def _fieldGenerator(xml, fields):
             node.setAttribute("domain", field.domain)
         if field.descr is not None:
             node.setAttribute("description", field.descr)
-        if field.getPropsAsStr() != "":
-            node.setAttribute("props", field.getPropsAsStr())
+        propsList = []
+        if field.input:
+            propsList.append("input")
+        if field.edit:
+            propsList.append("edit")
+        if field.show_in_grid:
+            propsList.append("show_in_grid")
+        if field.show_in_details:
+            propsList.append("show_in_details")
+        if field.is_mean:
+            propsList.append("is_mean")
+        if field.autocalculated:
+            propsList.append("autocalculated")
+        if field.required:
+            propsList.append("required")
+        if propsList != []:
+            node.setAttribute("props", ", ".join(propsList))
 
         yield node
 
@@ -165,14 +202,19 @@ def _constraintGenerator(xml, constraints):
             node.setAttribute("kind", constraint.kind)
         if constraint.items is not None:
             node.setAttribute("items", constraint.items)
-#            if constraint.props is not None:
-#                node.setAttribute("props", constraint.props)
         if constraint.reference_type is not None:
             node.setAttribute("reference_type", constraint.reference_type)
         if constraint.reference is not None:
             node.setAttribute("reference", constraint.reference)
-        if constraint.getPropsAsStr() != "":
-            node.setAttribute("props", constraint.getPropsAsStr())
+        propsList = []
+        if constraint.has_value_edit:
+            propsList.append("has_value_edit")
+        if constraint.cascading_delete:
+            propsList.append("cascading_delete")
+        if constraint.full_cascading_delete:
+            propsList.append("full_cascading_delete")
+        if propsList != []:
+            node.setAttribute("props", ", ".join(propsList))
         yield node
 
 
@@ -196,8 +238,14 @@ def _indexGenerator(xml, indexes):
                 pass
             if index.name is not None:
                 node.setAttribute("name", index.name)
-            if index.getPropsAsStr() != "":
-                node.setAttribute("props", index.getPropsAsStr())
+            propsList = []
+            if index.fulltext:
+                propsList.append("fulltext")
+            if index.uniqueness:
+                propsList.append("uniqueness")
+            if propsList != []:
+                node.setAttribute("props", ", ".join(propsList))
+
             yield node
         else:
             raise ValueError("Error! Index does not contain fields")

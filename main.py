@@ -17,8 +17,33 @@ resXML = ram2xml(schema)
 #connect = sqlite3.connect("test_db.db")
 connect = sqlite3.connect(":memory:")
 
-# Заполнение базы из объекта Schema
+# Заполнение базы данными из объекта Schema
 ram2sqlite(schema, connect)
 
 # Закрытие соединения с базой
 connect.close()
+
+
+import re
+s = """
+self.name = None
+        self.descr = None
+        self.add = False
+        self.edit = False
+        self.delete = False
+        self.ht_table_flags = None
+        self.access_level = None
+        self.fields = []
+        self.constraints = []
+        self.indexes = []
+"""
+
+
+l = [i[1:] for i in re.findall(r"\.\w+", s)]
+
+
+print("[\n\"" + "\",\n\"".join(l) + "\"\n]")
+
+
+
+
