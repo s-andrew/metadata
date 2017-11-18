@@ -2,9 +2,15 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d034cfec-9997-42ce-8dcd-47715037dbff" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dbconvert/__init__.py" afterPath="$PROJECT_DIR$/dbconvert/__init__.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dbconvert/ram2xml.py" afterPath="$PROJECT_DIR$/dbconvert/ram2xml.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dbconvert/rammodel/domain.py" afterPath="$PROJECT_DIR$/dbconvert/rammodel/domain.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dbconvert/rammodel/field.py" afterPath="$PROJECT_DIR$/dbconvert/rammodel/field.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dbconvert/rammodel/index.py" afterPath="$PROJECT_DIR$/dbconvert/rammodel/index.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dbconvert/rammodel/schema.py" afterPath="$PROJECT_DIR$/dbconvert/rammodel/schema.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dbconvert/rammodel/table.py" afterPath="$PROJECT_DIR$/dbconvert/rammodel/table.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dbconvert/xml2ram.py" afterPath="$PROJECT_DIR$/dbconvert/xml2ram.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/main.py" afterPath="$PROJECT_DIR$/main.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tests/test_xml_converting.py" afterPath="$PROJECT_DIR$/tests/test_xml_converting.py" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -14,13 +20,15 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="FileEditorManager">
-    <leaf>
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
       <file leaf-file-name="domain.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/dbconvert/rammodel/domain.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1300">
-              <caret line="80" column="27" lean-forward="true" selection-start-line="80" selection-start-column="27" selection-end-line="80" selection-end-column="27" />
-              <folding />
+            <state relative-caret-position="503">
+              <caret line="39" column="0" lean-forward="false" selection-start-line="39" selection-start-column="0" selection-end-line="39" selection-end-column="0" />
+              <folding>
+                <marker date="1509790422597" expanded="true" signature="93:99" ph="..." />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -58,7 +66,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -82,10 +89,11 @@
         </subPane>
       </pane>
       <pane id="Scratches" />
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$USER_HOME$/Documents/Python/qt_learn" />
   </component>
   <component name="RunDashboard">
     <option name="ruleStates">
@@ -115,7 +123,7 @@
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1382" height="744" extended-state="6" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.26172465" sideWeight="0.49019608" order="1" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.2655068" sideWeight="0.49019608" order="1" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="true" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32894737" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
@@ -143,11 +151,20 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/dbconvert/rammodel/domain.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1360">
+          <caret line="80" column="27" lean-forward="true" selection-start-line="80" selection-start-column="27" selection-end-line="80" selection-end-column="27" />
+          <folding>
+            <marker date="1509790422597" expanded="true" signature="93:99" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/test_db.db">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -163,15 +180,16 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/dbconvert/rammodel/domain.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1300">
-          <caret line="80" column="27" lean-forward="true" selection-start-line="80" selection-start-column="27" selection-end-line="80" selection-end-column="27" />
-          <folding />
+        <state relative-caret-position="503">
+          <caret line="39" column="0" lean-forward="false" selection-start-line="39" selection-start-column="0" selection-end-line="39" selection-end-column="0" />
+          <folding>
+            <marker date="1509790422597" expanded="true" signature="93:99" ph="..." />
+          </folding>
         </state>
       </provider>
     </entry>

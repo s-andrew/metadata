@@ -12,11 +12,11 @@ import io
 from dbconvert import xml2ram, ram2xml
 
 
-class   TestXMLConvert(unittest.TestCase):
+class TestXMLConvert(unittest.TestCase):
     def test_xml2ram_and_ram2xml(self):
         xml = md.parse("tasks.xml")
         schema = xml2ram(xml)
-        result = io.StringIO(ram2xml(schema).toprettyxml(indent="  "), newline="\n")
+        result = io.StringIO(ram2xml(schema).toprettyxml(indent="  ", encoding="utf-8").decode("utf-8"), newline="\n")
         with open("tasks.xml", "r", encoding="utf-8") as origin:
             i = 0
             for r, o in zip(result, origin):

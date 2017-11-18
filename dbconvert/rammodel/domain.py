@@ -5,22 +5,22 @@ Created on Sun Sep 24 01:01:44 2017
 @author: 1
 """
 class Domain:
-    __slots__ = [
-        "name",
-        "descr",
-        "type",
-        "align",
-        "width",
-        "precision",
-        "show_null",
-        "summable",
-        "case_sensitive",
-        "show_lead_nulls",
-        "thousands_separator",
-        "char_length",
-        "length",
-        "scale"
-        ]
+#    __slots__ = [
+#        "name",
+#        "descr",
+#        "type",
+#        "align",
+#        "width",
+#        "precision",
+#        "show_null",
+#        "summable",
+#        "case_sensitive",
+#        "show_lead_nulls",
+#        "thousands_separator",
+#        "char_length",
+#        "length",
+#        "scale"
+#        ]
 
     def __init__(self):
         self.name = None

@@ -6,11 +6,6 @@ Created on Sat Oct 21 11:43:51 2017
 """
 from dbconvert import minidom_fixed as md
 
-try:
-    from dbconvert.rammodel import Domain, Table, Field, Index, Constraint, Schema
-except ModuleNotFoundError:
-    from rammodel import Domain, Table, Field, Index, Constraint, Schema
-
 __all__ = ["ram2xml"]
 
 def ram2xml(schema):

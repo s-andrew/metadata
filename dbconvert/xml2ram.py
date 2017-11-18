@@ -6,11 +6,8 @@ Created on Sat Oct 21 11:43:51 2017
 """
 import xml.dom.minidom as md
 
+from dbconvert.rammodel import Domain, Table, Field, Index, Constraint, Schema
 
-try:
-    from dbconvert.rammodel import Domain, Table, Field, Index, Constraint, Schema
-except ModuleNotFoundError:
-    from rammodel import Domain, Table, Field, Index, Constraint, Schema
 
 __all__ = ["xml2ram"]
 
@@ -20,7 +17,7 @@ def xml2ram(xml):
     Create object Schema from xml.dom.minidom.Document
     XML -> RAM model
     Args:
-        xml : string. Name of XML file.
+        xml : xml.dom.minidom.Document
     Return: object Schema
     """
     schema = Schema()
@@ -34,7 +31,7 @@ def xml2ram(xml):
         elif attrName.lower() == "description":
             schema.descr = attrValue
         else:
-            raise ValueError("Incorrect attribute name \"{}\"".format(attrName))
+            raise ValueError("In tag \"{}\" invalid attribute name \"{}\"".format(schema.nodeName, attrName))
     schema.domains = _parseDomains(xml)
     schema.tables = _parseTables(xml)
 
@@ -87,7 +84,7 @@ def _parseDomains(xml):
             elif attrName.lower() == "scale":
                 tmp.scale = attrValue
             else:
-                raise ValueError("In tag \"{}\" incorrect attribute name \"{}\"".format(domain, attrName))
+                raise ValueError("In tag \"{}\" Invalid attribute name \"{}\"".format(domain, attrName))
 
         domainList.append(tmp)
 
@@ -127,7 +124,7 @@ def _parseTables(xml):
             elif attrName.lower() == "access_level":
                 tmp.access_level = attrValue
             else:
-                raise ValueError("In tag {} incorrect attribute name \"{}\"".format(table.nodeName, attrName))
+                raise ValueError("In tag {} invalid attribute name \"{}\"".format(table.nodeName, attrName))
 
         tmp.fields = _parseFields(table)
         tmp.indexes = _parseIndexes(table)
@@ -148,7 +145,7 @@ def _parseFields(xml):
 
     """
     if xml.nodeName != "table":
-        raise ValueError("Element is not table")
+        raise TypeError("Element is not table")
 
     fieldList = []
     for field in xml.getElementsByTagName("field"):
@@ -181,7 +178,7 @@ def _parseFields(xml):
             elif attrName.lower() == "description":
                 tmp.descr = attrValue
             else:
-                raise ValueError("In tag \"{}\" incorrect attribute name \"{}\"".format(field.nodeName, attrName))
+                raise ValueError("In tag \"{}\" invalid attribute name \"{}\"".format(field.nodeName, attrName))
 
         fieldList.append(tmp)
 
@@ -199,7 +196,7 @@ def _parseConstraints(xml):
 
     """
     if xml.nodeName != "table":
-        raise ValueError("Element is not table")
+        raise TypeError("Element is not table")
 
     constraintList = []
     for constraint in xml.getElementsByTagName("constraint"):
@@ -226,7 +223,7 @@ def _parseConstraints(xml):
             elif attrName.lower() == "reference":
                 tmp.reference = attrValue
             else:
-                raise ValueError("In tag \"{}\" incorrect attribute name \"{}\"".format(constraint.nodeName, attrName))
+                raise ValueError("In tag \"{}\" invalid attribute name \"{}\"".format(constraint.nodeName, attrName))
         constraintList.append(tmp)
     return constraintList
 
@@ -241,7 +238,7 @@ def _parseIndexes(xml):
 
     """
     if xml.nodeName != "table":
-        raise ValueError("Element is not table")
+        raise TypeError("Element is not table")
 
     indexList = []
     for index in xml.getElementsByTagName("index"):
@@ -266,6 +263,6 @@ def _parseIndexes(xml):
                     else:
                         raise ValueError("Invalid format of props string: {}".format(attrValue))
             else:
-                raise ValueError("In tag \"{}\" incorrect attribute name \"{}\"".format(index.nodeName, attrName))
+                raise ValueError("In tag \"{}\" invalid attribute name \"{}\"".format(index.nodeName, attrName))
         indexList.append(tmp)
     return indexList
