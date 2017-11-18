@@ -5,21 +5,6 @@ Created on Sun Sep 24 01:01:44 2017
 @author: 1
 """
 class Field:
-
-#    __slots__ = [
-#        "name",
-#        "rname",
-#        "domain",
-#        "descr",
-#        "input",
-#        "edit",
-#        "show_in_grid",
-#        "show_in_details",
-#        "is_mean",
-#        "autocalculated",
-#        "required"
-#        ]
-
     def __init__(self):
         self.name = None
         self.rname = None

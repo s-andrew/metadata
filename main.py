@@ -1,7 +1,13 @@
 import xml.dom.minidom as md
 import sqlite3
 
-from dbconvert import xml2ram, ram2xml, ram2sqlite, createMSSQLDDL
+from dbconvert import (xml2ram,
+                       ram2xml,
+                       ram2sqlite,
+                       createMSSQLDDL,
+                       createPostgresqlDDL)
+
+#TODO: ARGPARSE
 
 #==============================================================================
 #  Чтение XML при помощи minidom
@@ -41,5 +47,9 @@ ram2sqlite(schema, connect)
 connect.close()
 
 
-s = createMSSQLDDL(schema)
-print(s)
+#==============================================================================
+#  Создания DDL для PostgreSQL
+#==============================================================================
+postgresqlDDL = createPostgresqlDDL(schema)
+print(postgresqlDDL)
+

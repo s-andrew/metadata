@@ -42,6 +42,7 @@ def createMSSQLDDL(schema):
 def createSchema(schema):
     return "CREATE SCHEMA {name}".format(name = schema.name)
 
+
 def createDomain(domain):
     precisionAndScale = ""
     if domain.precision is not None:
@@ -59,6 +60,7 @@ def createDomain(domain):
             precision_and_scale = precisionAndScale
             )
 
+
 def createTable(table):
     fields = ""
     for field in table.fields:
@@ -71,6 +73,7 @@ def createTable(table):
             table_name = table.name,
             fields = fields
             )
+    
 
 def createField(field):
     pass
@@ -78,3 +81,7 @@ def createField(field):
                 name = field.name,
                 type_ = field.domain
             )
+
+
+def createIndex(index):
+    pass

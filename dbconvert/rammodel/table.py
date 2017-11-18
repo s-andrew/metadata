@@ -5,19 +5,6 @@ Created on Sun Sep 24 01:01:44 2017
 @author: 1
 """
 class Table:
-#    __slots__ = [
-#        "name",
-#        "descr",
-#        "add",
-#        "edit",
-#        "delete",
-#        "ht_table_flags",
-#        "access_level",
-#        "fields",
-#        "constraints",
-#        "indexes"
-#        ]
-
     def __init__(self):
         self.name = None
         self.descr = None

@@ -5,17 +5,6 @@ Created on Sun Sep 24 01:01:44 2017
 @author: 1
 """
 class Constraint:
-    __slots__ = [
-        "name",
-        "kind",
-        "items",
-        "reference_type",
-        "reference",
-        "has_value_edit",
-        "cascading_delete",
-        "full_cascading_delete"
-        ]
-
     def __init__(self):
         self.name = None
         self.kind = None
