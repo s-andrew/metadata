@@ -1,6 +1,8 @@
 import xml.dom.minidom as md
 import sqlite3
 
+import psycopg2
+
 from dbconvert import (xml2ram,
                        ram2xml,
                        ram2sqlite,
@@ -45,11 +47,33 @@ ram2sqlite(schema, connect)
 #  Закрытие соединения с базой
 #==============================================================================
 connect.close()
+del connect
 
 
 #==============================================================================
 #  Создания DDL для PostgreSQL
 #==============================================================================
 postgresqlDDL = createPostgresqlDDL(schema)
-print(postgresqlDDL)
 
+connect = psycopg2.connect("dbname='{dbname}' user='{user}' host='{host}' password='{pwd}'".format(
+            dbname = "Test",
+            user = "postgres",
+            host = "localhost",
+            pwd = "3korif8245ef"
+        ))
+
+cursor = connect.cursor()
+#cursor.execute(postgresqlDDL[0])
+#connect.commit()
+#cursor.execute(postgresqlDDL[1])            
+#connect.commit()
+#connect.close()
+
+for query in postgresqlDDL[0]:
+    cursor.execute(query)
+    connect.commit()
+for query in postgresqlDDL[1]:
+    cursor.execute(query)
+    connect.commit()
+connect.close()
+    
