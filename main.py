@@ -63,17 +63,26 @@ connect = psycopg2.connect("dbname='{dbname}' user='{user}' host='{host}' passwo
         ))
 
 cursor = connect.cursor()
-#cursor.execute(postgresqlDDL[0])
+cursor.execute(postgresqlDDL[0])
+connect.commit()
+cursor.execute(postgresqlDDL[1])            
+connect.commit()
+cursor.execute(postgresqlDDL[2])            
+connect.commit()
+connect.close()
+
+#for query in postgresqlDDL[0]:
+#    cursor.execute(query)
 #connect.commit()
-#cursor.execute(postgresqlDDL[1])            
+#for query in postgresqlDDL[1]:
+#    cursor.execute(query)
+#connect.commit()
+#for query in postgresqlDDL[2]:
+#    try:
+#        cursor.execute(query)
+#    except:
+#        print(query)
+#        raise
 #connect.commit()
 #connect.close()
-
-for query in postgresqlDDL[0]:
-    cursor.execute(query)
-    connect.commit()
-for query in postgresqlDDL[1]:
-    cursor.execute(query)
-    connect.commit()
-connect.close()
-    
+#    

@@ -41,7 +41,7 @@ def getPrimaryKey(schemaName, tableName, constraint):
 def getForeignKey(schemaName, tableName, constraint):
     return """ALTER TABLE \"{schema_name}\".\"{table_name}\"
     ADD {name} FOREIGN KEY (\"{items}\")
-    REFERENCES \"{reference}\"  (\"{items}\")""".format(
+    REFERENCES \"{schema_name}\".\"{reference}\"""".format(
             schema_name = schemaName,
             table_name = tableName,
             name = "CONSTRAINT \"" + constraint.name + "\"" if constraint.name is not None else "",
@@ -83,29 +83,34 @@ def createPostgresqlDDL(schema):
     domains = []
     tables = []
     indeces = []
+    primaryKeys = []
     constraints = []
     for domain in schema.domains:
         domains.append(createDomain(schema.name, domain))
         
     for table in schema.tables:
-        table_, indeces_, constraints_ = createTable(schema.name, table)
+        table_, indeces_, primaryKeys_, constraints_ = createTable(schema.name, table)
         tables.append(table_)
         indeces.extend(indeces_)
+        primaryKeys.extend(primaryKeys_)
         constraints.extend(constraints_)
 
 #    createSchemaDomainTablesIndecesStr = list(itertools.chain([createSchema(schema)],
 #                                                                     domains,
 #                                                                     tables,
 #                                                                     indeces))
+#    createPrimaryKeysStr = primaryKeys
 #    createConstraintsStr = constraints
     
     createSchemaDomainTablesIndecesStr = ";\n".join(itertools.chain([createSchema(schema)],
                                                                      domains,
                                                                      tables,
                                                                      indeces)) + ";\n"
-    createConstraintsStr = ";\n".join(constraints)
+    createPrimaryKeysStr = ";\n".join(primaryKeys) + ";\n"
+    createConstraintsStr = ";\n".join(constraints) + ";\n"
     
     return (createSchemaDomainTablesIndecesStr,
+            createPrimaryKeysStr,
             createConstraintsStr)
     
 
@@ -129,8 +134,11 @@ def createTable(schemaName, table):
             fields = fields
             )
     indeces = map(lambda i: createIndex(schemaName, table.name, i), table.indexes)
-    constraints = map(lambda c: createConstraint(schemaName, table.name, c), table.constraints)
-    return tableCreateStr, list(indeces), list(constraints)
+    primaryKeys = map(lambda c: createConstraint(schemaName, table.name, c),
+                      filter(lambda c: c.kind == "PRIMARY", table.constraints))
+    constraints = map(lambda c: createConstraint(schemaName, table.name, c),
+                      filter(lambda c: c.kind != "PRIMARY", table.constraints))
+    return tableCreateStr, list(indeces), list(primaryKeys), list(constraints)
 
 
 def createField(schemaName, field):
