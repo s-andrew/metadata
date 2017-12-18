@@ -28,6 +28,28 @@ lengthTypes = dict(
         )
 
 
+def getType(domain):
+    if domain.type in simpleTypes:
+        return simpleTypes[domain.type]
+    if domain.type in lengthTypes:
+        if domain.length is not None:
+            length = domain.length
+        elif domain.char_length is not None:
+            length = domain.char_length
+        else:
+            raise ValueError("Domain with type {} haven't length or char_length".format(domain.type))
+        return "{t}({n})".format(
+                t = lengthTypes[domain.type],
+                n = length)
+    if domain.type in precisionAndScaleTypes:
+        if domain.precision is not None:
+            params = domain.precision
+            if domain.scale is not None:
+                params += ", " + domain.scale
+        return "{t}{p}".format(
+                t = precisionAndScaleTypes[domain.type],
+                p = "(" + params + ")" if params is not None else "")
+    
 
 def getPrimaryKey(schemaName, tableName, constraint):
     return """ALTER TABLE \"{schema_name}\".\"{table_name}\"
@@ -54,32 +76,18 @@ constraints = dict(
         FOREIGN = getForeignKey
         )
 
-def getType(domain):
-    if domain.type in simpleTypes:
-        return simpleTypes[domain.type]
-    if domain.type in lengthTypes:
-        if domain.length is not None:
-            length = domain.length
-        elif domain.char_length is not None:
-            length = domain.char_length
-        else:
-            raise ValueError("Domain with type {} haven't length or char_length".format(domain.type))
-        return "{t}({n})".format(
-                t = lengthTypes[domain.type],
-                n = length)
-    if domain.type in precisionAndScaleTypes:
-        if domain.precision is not None:
-            params = domain.precision
-            if domain.scale is not None:
-                params += ", " + domain.scale
-        return "{t}{p}".format(
-                t = precisionAndScaleTypes[domain.type],
-                p = "(" + params + ")" if params is not None else "")
-    
-
 
 
 def createPostgresqlDDL(schema):
+    """
+    Create DDL for PostgreSQL
+    RAM model -> PostgreSQL DDL
+    Args:
+        schema: object schema
+    Return:
+        str with DDL of schema
+    """
+    
     domains = []
     tables = []
     indeces = []
@@ -94,39 +102,62 @@ def createPostgresqlDDL(schema):
         indeces.extend(indeces_)
         primaryKeys.extend(primaryKeys_)
         constraints.extend(constraints_)
-
-#    createSchemaDomainTablesIndecesStr = list(itertools.chain([createSchema(schema)],
-#                                                                     domains,
-#                                                                     tables,
-#                                                                     indeces))
-#    createPrimaryKeysStr = primaryKeys
-#    createConstraintsStr = constraints
     
-    createSchemaDomainTablesIndecesStr = ";\n".join(itertools.chain([createSchema(schema)],
-                                                                     domains,
+    createSchemaDomainTablesIndecesStr = ";\n".join(itertools.chain(domains,
                                                                      tables,
                                                                      indeces)) + ";\n"
     createPrimaryKeysStr = ";\n".join(primaryKeys) + ";\n"
     createConstraintsStr = ";\n".join(constraints) + ";\n"
     
-    return (createSchemaDomainTablesIndecesStr,
-            createPrimaryKeysStr,
-            createConstraintsStr)
+    return """\
+BEGIN TRANSACTION;
+SET CONSTRAINTS ALL DEFERRED;
+""" +\
+createSchema(schema) +\
+createSchemaDomainTablesIndecesStr +\
+createPrimaryKeysStr +\
+createConstraintsStr +\
+"COMMIT;"
     
 
 def createSchema(schema):
-    return "CREATE SCHEMA \"{name}\"".format(name = schema.name)
+    """
+    Create DDL for schema
+    Args:
+        schema: object Schema
+    Return: str
+    """
+    return "CREATE SCHEMA \"{name}\";\n".format(name = schema.name)
 
 
 def createDomain(schemaName, domain):
-    return """CREATE DOMAIN \"{schema_name}\".\"{domain_name}\" AS {type_}""".format(
+    """
+    Create DDL for domain
+    Args:
+        schemaName: str
+        domain: object Domain
+    Return: str
+    """
+    return """CREATE DOMAIN \"{schema_name}\".\"{domain_name}\" AS {type_name}""".format(
             schema_name = schemaName,
             domain_name = domain.name,
-            type_ = getType(domain)
+            type_name = getType(domain)
             )
 
 
 def createTable(schemaName, table):
+    """
+    Create DDL for table
+    Args:
+        schemaName: str
+        domain: object Domain
+    Return:
+        tuple of four elements (str, list<str>, list<str>, list<str>):
+            0) DDL for creating table
+            1) list of DDL for creating table indces
+            2) list of DDL for creating table primary keys
+            3) list of DDL for creating table other constraints
+    """
     fields = ",\n".join(map(lambda f: createField(schemaName, f), table.fields))
     tableCreateStr = """CREATE TABLE \"{schema_name}\".\"{table_name}\"(\n{fields})""".format(
             schema_name = schemaName,
@@ -142,6 +173,13 @@ def createTable(schemaName, table):
 
 
 def createField(schemaName, field):
+    """
+    Create DDL for field
+    Args:
+        schemaName: str
+        field: object Field
+    Return: str
+    """
     return "\"{name}\" \"{schema_name}\".\"{type_}\"".format(
             name = field.name,
             schema_name = schemaName,
@@ -150,7 +188,15 @@ def createField(schemaName, field):
 
 
 def createIndex(schemaName, tableName, index):
-    return """CREATE {unique} INDEX{name} ON \"{schema_name}\".\"{tableName}\" (\"{field}\")""".format(\
+    """
+    Create DDL for index
+    Args:
+        schemaName: str
+        tableName: str
+        field: object Index
+    Return: str
+    """
+    return """CREATE {unique} INDEX{name} ON \"{schema_name}\".\"{tableName}\" (\"{field}\")""".format(
             unique = "UNIQUE" if index.uniqueness else "",
             schema_name = schemaName,
             name = "\"" + index.name + "\"" if index.name is not None else "",
@@ -160,4 +206,12 @@ def createIndex(schemaName, tableName, index):
     
 
 def createConstraint(schemaName, tableName, constraint):
+    """
+    Create DDL for constraint
+    Args:
+        schemaName: str
+        tableName: str
+        constraint: object Constraint
+    Return: str
+    """
     return constraints[constraint.kind](schemaName, tableName, constraint)

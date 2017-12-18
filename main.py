@@ -1,13 +1,12 @@
 import xml.dom.minidom as md
 import sqlite3
 
-import psycopg2
-
 from dbconvert import (xml2ram,
                        ram2xml,
                        ram2sqlite,
                        createMSSQLDDL,
-                       createPostgresqlDDL)
+                       createPostgresqlDDL,
+                       createSchemaFromMSSQL)
 
 #TODO: ARGPARSE
 
@@ -55,6 +54,7 @@ del connect
 #==============================================================================
 postgresqlDDL = createPostgresqlDDL(schema)
 
+import psycopg2
 connect = psycopg2.connect("dbname='{dbname}' user='{user}' host='{host}' password='{pwd}'".format(
             dbname = "Test",
             user = "postgres",
@@ -63,26 +63,50 @@ connect = psycopg2.connect("dbname='{dbname}' user='{user}' host='{host}' passwo
         ))
 
 cursor = connect.cursor()
-cursor.execute(postgresqlDDL[0])
-connect.commit()
-cursor.execute(postgresqlDDL[1])            
-connect.commit()
-cursor.execute(postgresqlDDL[2])            
-connect.commit()
+cursor.execute(postgresqlDDL)
 connect.close()
+del connect
 
-#for query in postgresqlDDL[0]:
-#    cursor.execute(query)
-#connect.commit()
-#for query in postgresqlDDL[1]:
-#    cursor.execute(query)
-#connect.commit()
-#for query in postgresqlDDL[2]:
-#    try:
-#        cursor.execute(query)
-#    except:
-#        print(query)
-#        raise
-#connect.commit()
-#connect.close()
-#    
+
+
+#==============================================================================
+#  Создание DDL для Microsoft SQL Server
+#==============================================================================
+#mssqlDDL = createMSSQLDDL(schema)
+
+import pyodbc
+connect = pyodbc.connect("DRIVER={driver};SERVER={server};DATABASE={database};UID={username};PWD={password}".format(
+        driver   = "ODBC Driver 11 for SQL Server",
+        #driver   = "SQL Server",
+        server   = "localhost",
+        username = "sa",
+        password = "3korif8245ef",
+        database = "NORTHWND"
+        ))
+
+schemaName = "dbo"
+
+cursor = connect.cursor()
+cursor.execute("""
+    SELECT TBL.name, TBL.object_id
+    FROM sys.tables AS TBL
+    LEFT JOIN sys.schemas AS SCH ON TBL.schema_id = SCH.schema_id
+    WHERE SCH.name = '{schema_name}'
+    """.format(schema_name = schemaName))
+
+for i in cursor.fetchall():
+    print(*i)
+
+
+schema = createSchemaFromMSSQL(schemaName, connect)
+resXML = ram2xml(schema)
+s = resXML.toprettyxml()
+
+dir(resXML)
+
+#with open("result.xml", "w") as file:
+#    file.write(resXML.toprettyxml())
+        
+
+connect.close()
+del connect
