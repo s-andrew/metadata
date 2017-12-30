@@ -6,6 +6,7 @@ Created on Sun Sep 24 01:01:44 2017
 """
 class Table:
     def __init__(self):
+        self.id = None
         self.name = None
         self.descr = None
         self.add = False

@@ -4,8 +4,9 @@ Created on Sat Dec  2 10:26:11 2017
 
 @author: 1
 """
+from itertools import groupby, chain
 
-from dbconvert.rammodel import Domain, Table, Field, Index, Constraint, Schema
+from dbconvert.rammodel import Domain, Table, Field, Index, IndexItem, Constraint, Schema
 
 
 #simpleTypes = dict(
@@ -32,14 +33,15 @@ types = dict(
         datetime = "DATETIME",
         image = "BLOB",
         int = "INTEGER",
-        money = "",
+        money = "CURRENCY",
         nchar = "STRING", #???
         ntext = "MEMO", #???
         nvarchar = "STRING", # ???
         real = "FLOAT", # ???
         smallint = "SMALLINT", #???
         varbinary = "BLOB", 
-        varchar = "STRING"
+        varchar = "STRING",
+        sysname = "STRING"
         )
 
 
@@ -65,26 +67,32 @@ def _tableGenerator(schemaName, cursor):
     for tableName, tableId in cursor.fetchall():
         tmp = Table()
         tmp.name = tableName
-        tmp.id = tableId
+#        tmp.id = tableId
         
         tmp.fields = list(_fieldGenerator(tableId, cursor))
+        tmp.constraints = list(chain(_foreignKeyGenerator(tableId, cursor),
+                                     _primaryAndUniqueKeyGenerator(tableId, cursor),
+                                     _checkConstraintGenerator(tableId, cursor)))
+        tmp.indexes = list(_indecesGenerator(tableId, cursor))
         yield tmp
         
 
 def _fieldGenerator(tableId, cursor):
     cursor.execute("""
-        SELECT COL.[name]
-        	  ,TP.[name] AS type_name
-              ,COL.[max_length]
-              ,COL.[precision]
-              ,COL.[scale]
-              ,COL.[is_nullable]
-        	  ,DF.[definition] AS default_value
-          FROM [sys].[columns] AS COL
-          LEFT JOIN [sys].[default_constraints] AS DF ON COL.default_object_id = DF.object_id
-          LEFT JOIN [sys].[types] AS TP ON COL.system_type_id = TP.system_type_id
-          WHERE COL.object_id = {table_id}
-        """.format(table_id = tableId))
+    SELECT COL.name
+    	    ,TP.name AS type_name
+          ,COL.max_length
+          ,COL.precision
+          ,COL.scale
+          ,COL.is_nullable
+    	    ,DF.definition AS default_value
+    FROM sys.columns AS COL
+    LEFT JOIN sys.default_constraints AS DF
+    ON COL.default_object_id = DF.object_id
+    LEFT JOIN sys.types AS TP
+    ON COL.system_type_id = TP.system_type_id
+    WHERE COL.object_id = {table_id}
+    """.format(table_id = tableId))
     for field in cursor.fetchall():
         name, type_name, max_length, precision, scale, is_nullable, default_value = field
         tmp = Field()
@@ -93,23 +101,149 @@ def _fieldGenerator(tableId, cursor):
             tmp.name = name
         else:
             errors.append("No field name in table with id={}".format(tableId))
+
+            
+        # Хз как отличить системный тип от пользовательского,
+        # поэтому так как в NORTHWND нет пользовательских типов
+        # обрабатываю все как системные типы (через безымянные домены)
+        # TODO: все сказанное выше надо исправить(когда нибудь)
+        
+        domain = Domain()
+       
         if type_name is not None:
-            tmp.type = type_name# types[type_name]
-        else:
-            errors.append("No type name in table with id={}".format(tableId))
+            domain.type = types[type_name]
         if max_length is not None:
-            tmp.char_length = str(max_length)
+            domain.char_length = str(max_length)
         if precision is not None:
-            tmp.precision = str(precision)
+            domain.precision = str(precision)
         if scale is not None:
-            tmp.scale = str(scale)
+            domain.scale = str(scale)
         if is_nullable == 0:
-            tmp.required = True
+            domain.required = True
         if default_value is not None:
-            tmp.default = str(default_value)
+            domain.default = str(default_value)
+        tmp.domain = domain
         
         if errors != []:
             raise ValueError("\n".join(errors))
         yield tmp
+    
+
+def _foreignKeyGenerator(tableId, cursor):
+    cursor.execute("""
+    SELECT FK.name
+    	  ,COL.name AS items
+    	  ,TBL.name AS reference
+    	  ,FK.delete_referential_action
+    	  ,FK.update_referential_action
+    FROM sys.foreign_key_columns AS FKC
+    LEFT JOIN sys.foreign_keys AS FK ON FKC.constraint_object_id = FK.object_id
+    LEFT JOIN sys.objects AS OBJ
+    ON FK.referenced_object_id = OBJ.object_id
+    LEFT JOIN sys.columns AS COL
+    ON FKC.parent_object_id = COL.object_id
+    AND FKC.parent_column_id = COL.column_id
+    LEFT JOIN sys.tables AS TBL
+    ON FKC.referenced_object_id = TBL.object_id
+    WHERE FKC.parent_object_id = {table_id}
+    """.format(table_id = tableId))
+    for fk in cursor.fetchall():
+        name, items, reference, deleteAction, updateAction = fk
+        tmp = Constraint()
+        errors = []
+        if name is not None:
+            tmp.name = name
+        if items is not None:
+            tmp.items = items
+        else:
+            errors.append("Foreign key in table with id={} has not items".format(tableId))
+        if reference is not None:
+            tmp.reference = reference
+        else:
+            errors.append("Foreign key in table with id={} has not reference".format(tableId))
+            
+        if errors != []:
+            raise ValueError("\n".join(errors))
+        tmp.kind = "FOREIGN"
+        yield tmp
+        
+
+
+def _primaryAndUniqueKeyGenerator(tableId, cursor):
+    cursor.execute("""
+    SELECT  KC.name, KC.type, COL.name
+    FROM sys.key_constraints AS KC
+    JOIN sys.columns AS COL
+    ON KC.unique_index_id = COL.column_id
+    AND KC.parent_object_id = COL.object_id
+    WHERE KC.parent_object_id = {table_id}
+    """.format(table_id = tableId))
+    for name, kind, items in cursor.fetchall():
+        tmp = Constraint()
+        errors = []
+        tmp.name = name
+        if kind is not None:
+            if kind == "PK":
+                tmp.kind = "PRIMARY"
+            elif kind == "UQ":
+                tmp.kind = "UNIQUE"
+        else:
+            errors.append("Key in table with id={} has not kind".format(tableId))
+        if items is not None:
+            tmp.items = items
+        else:
+            errors.append("Key in table with id={} has not items".format(tableId))
+        
+        if errors != []:
+            raise ValueError("\n".join(errors))
+        
+        yield tmp
+        
+def _checkConstraintGenerator(tableId, cursor):
+    cursor.execute("""
+    SELECT CC.name, CC.definition, COL.name
+    FROM sys.check_constraints AS CC
+    JOIN sys.columns AS COL
+    ON CC.parent_column_id = COL.column_id
+    AND CC.parent_object_id = COL.object_id
+    WHERE parent_object_id = {table_id}
+    """.format(table_id = tableId))
+    for name, exp, item in cursor.fetchall():
+        tmp = Constraint()
+        tmp.name = name
+        tmp.expression = exp
+        if item is not None:
+            tmp.items = item
+        else:
+            raise ValueError("Check constraint in table with id={} has not items".format(tableId))
+        tmp.kind = "CHECK"
+        yield tmp
+
+    
+def _indecesGenerator(tableId, cursor):
+    cursor.execute("""
+    SELECT ind.name
+          ,ind.type_desc
+    	  ,ic.index_column_id
+    	  ,col.name
+    	  ,ic.is_descending_key
+    FROM sys.indexes AS ind
+    JOIN sys.index_columns ic
+    ON ind.object_id = ic.object_id AND ind.index_id = ic.index_id
+    JOIN sys.columns AS col
+    ON ind.object_id = col.object_id AND ic.column_id = col.column_id
+    WHERE ind.object_id = {table_id}
+    """.format(table_id = tableId))
+    for key, group in groupby(cursor.fetchall(), lambda x: (x[0], x[1])):
+        tmp = Index()
+        tmp.name, tmp.is_clustered = key
+        for _, _, colPos, colName, colDesc in group:
+            tmpItem = IndexItem()
+            tmpItem.name = colName
+            tmpItem.position = colPos
+            tmpItem.desc = colDesc
+            tmp.fields.append(tmpItem)
+        yield tmp
+    
     
     

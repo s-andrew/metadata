@@ -10,3 +10,12 @@ class Index:
         self.fulltext = False
         self.uniqueness = False
         self.fields = []
+        
+        self.is_clustered = False
+        
+        
+class IndexItem:
+    def __init__(self):
+        self.name = None
+        self.position = None
+        self.desc = False

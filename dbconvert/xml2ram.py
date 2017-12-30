@@ -4,9 +4,8 @@ Created on Sat Oct 21 11:43:51 2017
 
 @author: 1
 """
-import xml.dom.minidom as md
 
-from dbconvert.rammodel import Domain, Table, Field, Index, Constraint, Schema
+from dbconvert.rammodel import Domain, Table, Field, Index, IndexItem, Constraint, Schema
 
 
 __all__ = ["xml2ram"]
@@ -50,6 +49,64 @@ def _parseDomains(xml):
     domainList = []
     for domain in xml.getElementsByTagName("domain"):
         tmp = Domain()
+        tmpDomain = Domain()
+        
+        # Check attribute name
+        attr = domain.getAttribute("name")
+        if attr:
+            tmpDomain.name = attr
+         # Check attribute description
+        attr = domain.getAttribute("description")
+        if attr:
+            tmpDomain.descr = attr 
+        # Check attribute type
+        attr = domain.getAttribute("type")
+        if attr:
+            tmpDomain.type = attr 
+        # Check attribute align
+        attr = domain.getAttribute("align")
+        if attr:
+            tmpDomain.align = attr 
+        # Check attribute width
+        attr = domain.getAttribute("width")
+        if attr:
+            tmpDomain.width = attr
+        # Check attribute precision
+        attr = domain.getAttribute("precision")
+        if attr:
+            tmpDomain.precision = attr
+        # Check attribute precision
+        attr = domain.getAttribute("props")
+        if attr:
+            for prop in attr.split(", "):
+                if prop == "show_null":
+                    tmpDomain.show_null = True
+                elif prop == "summable":
+                    tmpDomain.summable = True
+                elif prop == "case_sensitive":
+                    tmpDomain.case_sensitive = True
+                elif prop == "show_lead_nulls":
+                    tmpDomain.show_lead_nulls = True
+                elif prop == "thousands_separator":
+                    tmpDomain.thousands_separator = True
+                else:
+                    raise ValueError("Invalid format of props string: {}".format(attr))
+        # Check attribute char_length
+        attr = domain.getAttribute("char_length")
+        if attr:
+            tmpDomain.char_length = attr
+        # Check attribute length
+        attr = domain.getAttribute("length")
+        if attr:
+            tmpDomain.length = attr
+        # Check attribute scale
+        attr = domain.getAttribute("scale")
+        if attr:
+            tmpDomain.scale = attr
+        
+        
+        
+        
         for attrName, attrValue in domain.attributes.items():
             if attrName.lower() == "name":
                 tmp.name = attrValue
@@ -250,7 +307,10 @@ def _parseIndexes(xml):
                 # хз что тут делать
                 # в предложенных xml файлах такого не было
         else:
-            tmp.fields.append(index.getAttribute("field"))
+            item = IndexItem()
+            item.name = index.getAttribute("field")
+            item.position = 0
+            tmp.fields.append(item)
         for attrName, attrValue in index.attributes.items():
             if attrName.lower() == "field":
                 pass

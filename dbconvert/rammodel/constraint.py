@@ -11,6 +11,7 @@ class Constraint:
         self.items = None
         self.reference_type = None
         self.reference = None
+        self.expression = None
         self.has_value_edit = False
         self.cascading_delete = False
         self.full_cascading_delete = False

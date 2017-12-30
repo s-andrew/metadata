@@ -7,6 +7,7 @@ Created on Sat Nov 18 10:20:50 2017
 import itertools
 
 simpleTypes = dict(
+        INTEGER = "int",
         BLOB = "bytea",
         BOOLEAN = "boolean",
         BYTE = "smallint",
@@ -29,6 +30,7 @@ lengthTypes = dict(
 
 
 def getType(domain):
+    res = None
     if domain.type in simpleTypes:
         return simpleTypes[domain.type]
     if domain.type in lengthTypes:
@@ -46,9 +48,10 @@ def getType(domain):
             params = domain.precision
             if domain.scale is not None:
                 params += ", " + domain.scale
-        return "{t}{p}".format(
+        res = "{t}{p}".format(
                 t = precisionAndScaleTypes[domain.type],
                 p = "(" + params + ")" if params is not None else "")
+    return res if res is not None else "text"
     
 
 def getPrimaryKey(schemaName, tableName, constraint):
@@ -71,9 +74,30 @@ def getForeignKey(schemaName, tableName, constraint):
             reference = constraint.reference
             )
     
+def getCheckConstraint(schemaName, tableName, constraint):
+    return """ALTER TABLE \"{schema_name}\".\"{table_name}\"
+    ADD {name} CHECK ({expression})""".format(
+            schema_name = schemaName,
+            table_name = tableName,
+            name = "CONSTRAINT \"" + constraint.name + "\"" if constraint.name is not None else "",
+            items = constraint.items,
+            expression = constraint.reference
+            )
+    
+def getUniqueConstraint(schemaName, tableName, constraint):
+    return """ALTER TABLE \"{schema_name}\".\"{table_name}\"
+    ADD {name} UNIQUE (\"{items}\")""".format(
+            schema_name = schemaName,
+            table_name = tableName,
+            name = "\"" + constraint.name + "\"" if constraint.name is not None else "",
+            items = constraint.items
+            )
+    
 constraints = dict(
         PRIMARY = getPrimaryKey,
-        FOREIGN = getForeignKey
+        FOREIGN = getForeignKey,
+        CHECK = getCheckConstraint,
+        UNIQUE = getUniqueConstraint
         )
 
 
@@ -180,10 +204,12 @@ def createField(schemaName, field):
         field: object Field
     Return: str
     """
+    print(field.domain)
+    print(field.name, field.domain if isinstance(field.domain, str) else field.domain.type)
     return "\"{name}\" \"{schema_name}\".\"{type_}\"".format(
             name = field.name,
             schema_name = schemaName,
-            type_ = field.domain
+            type_ = field.domain if isinstance(field.domain, str) else getType(field.domain)
             )
 
 
@@ -201,7 +227,7 @@ def createIndex(schemaName, tableName, index):
             schema_name = schemaName,
             name = "\"" + index.name + "\"" if index.name is not None else "",
             tableName = tableName,
-            field = index.fields[0]
+            field = ", ".join(item.name for item in index.fields)
             )
     
 

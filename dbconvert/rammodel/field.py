@@ -8,7 +8,7 @@ class Field:
     def __init__(self):
         self.name = None
         self.rname = None
-        self.domain = None
+        self.domain = None        
         self.descr = None
         self.input = False
         self.edit = False
@@ -17,3 +17,6 @@ class Field:
         self.is_mean = False
         self.autocalculated = False
         self.required = False
+        
+    def __str__(self):
+        return str(self.__dict__)

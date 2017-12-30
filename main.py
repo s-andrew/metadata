@@ -27,6 +27,8 @@ schema = xml2ram(xml)
 #  Создание XML из объекта Schema
 #==============================================================================
 resXML = ram2xml(schema)
+#with open("result.xml", "w") as file:
+#    file.write(resXML.toprettyxml(encoding="utf-8").decode("utf-8"))
 
 
 #==============================================================================
@@ -54,18 +56,18 @@ del connect
 #==============================================================================
 postgresqlDDL = createPostgresqlDDL(schema)
 
-import psycopg2
-connect = psycopg2.connect("dbname='{dbname}' user='{user}' host='{host}' password='{pwd}'".format(
-            dbname = "Test",
-            user = "postgres",
-            host = "localhost",
-            pwd = "3korif8245ef"
-        ))
-
-cursor = connect.cursor()
-cursor.execute(postgresqlDDL)
-connect.close()
-del connect
+#import psycopg2
+#connect = psycopg2.connect("dbname='{dbname}' user='{user}' host='{host}' password='{pwd}'".format(
+#            dbname = "Test",
+#            user = "postgres",
+#            host = "localhost",
+#            pwd = "3korif8245ef"
+#        ))
+#
+#cursor = connect.cursor()
+#cursor.execute(postgresqlDDL)
+#connect.close()
+#del connect
 
 
 
@@ -85,27 +87,25 @@ connect = pyodbc.connect("DRIVER={driver};SERVER={server};DATABASE={database};UI
         ))
 
 schemaName = "dbo"
+#
+#cursor = connect.cursor()
+#cursor.execute("""
+#    SELECT TBL.name, TBL.object_id
+#    FROM sys.tables AS TBL
+#    LEFT JOIN sys.schemas AS SCH ON TBL.schema_id = SCH.schema_id
+#    WHERE SCH.name = '{schema_name}'
+#    """.format(schema_name = schemaName))
 
-cursor = connect.cursor()
-cursor.execute("""
-    SELECT TBL.name, TBL.object_id
-    FROM sys.tables AS TBL
-    LEFT JOIN sys.schemas AS SCH ON TBL.schema_id = SCH.schema_id
-    WHERE SCH.name = '{schema_name}'
-    """.format(schema_name = schemaName))
-
-for i in cursor.fetchall():
-    print(*i)
 
 
 schema = createSchemaFromMSSQL(schemaName, connect)
 resXML = ram2xml(schema)
-s = resXML.toprettyxml()
+#s = resXML.toprettyxml()
 
-dir(resXML)
 
-#with open("result.xml", "w") as file:
-#    file.write(resXML.toprettyxml())
+
+with open("result.xml", "w") as file:
+    file.write(resXML.toprettyxml())
         
 
 connect.close()
