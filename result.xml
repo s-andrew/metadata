@@ -1,0 +1,263 @@
+<?xml version="1.0" ?>
+<dbd_schema name="dbo">
+	<custom/>
+	<domains/>
+	<tables>
+		<table name="Orders">
+			<field name="OrderID" type="INTEGER" precision="10" char_length="4" scale="0"/>
+			<field name="CustomerID" type="STRING" precision="0" char_length="10" scale="0"/>
+			<field name="EmployeeID" type="INTEGER" precision="10" char_length="4" scale="0"/>
+			<field name="OrderDate" type="DATETIME" precision="23" char_length="8" scale="3"/>
+			<field name="RequiredDate" type="DATETIME" precision="23" char_length="8" scale="3"/>
+			<field name="ShippedDate" type="DATETIME" precision="23" char_length="8" scale="3"/>
+			<field name="ShipVia" type="INTEGER" precision="10" char_length="4" scale="0"/>
+			<field name="Freight" type="CURRENCY" precision="19" char_length="8" scale="4"/>
+			<field name="ShipName" type="STRING" precision="0" char_length="80" scale="0"/>
+			<field name="ShipName" type="STRING" precision="0" char_length="80" scale="0"/>
+			<field name="ShipAddress" type="STRING" precision="0" char_length="120" scale="0"/>
+			<field name="ShipAddress" type="STRING" precision="0" char_length="120" scale="0"/>
+			<field name="ShipCity" type="STRING" precision="0" char_length="30" scale="0"/>
+			<field name="ShipCity" type="STRING" precision="0" char_length="30" scale="0"/>
+			<field name="ShipRegion" type="STRING" precision="0" char_length="30" scale="0"/>
+			<field name="ShipRegion" type="STRING" precision="0" char_length="30" scale="0"/>
+			<field name="ShipPostalCode" type="STRING" precision="0" char_length="20" scale="0"/>
+			<field name="ShipPostalCode" type="STRING" precision="0" char_length="20" scale="0"/>
+			<field name="ShipCountry" type="STRING" precision="0" char_length="30" scale="0"/>
+			<field name="ShipCountry" type="STRING" precision="0" char_length="30" scale="0"/>
+			<constraint name="FK_Orders_Customers" kind="FOREIGN" reference="Customers"/>
+			<constraint name="FK_Orders_Employees" kind="FOREIGN" reference="Employees"/>
+			<constraint name="FK_Orders_Shippers" kind="FOREIGN" reference="Shippers"/>
+			<constraint name="PK_Orders" kind="PRIMARY"/>
+			<index field="OrderID" name="PK_Orders" props="clustered"/>
+			<index field="CustomerID" name="CustomerID" props="clustered"/>
+			<index field="CustomerID" name="CustomersOrders" props="clustered"/>
+			<index field="EmployeeID" name="EmployeeID" props="clustered"/>
+			<index field="EmployeeID" name="EmployeesOrders" props="clustered"/>
+			<index field="OrderDate" name="OrderDate" props="clustered"/>
+			<index field="ShippedDate" name="ShippedDate" props="clustered"/>
+			<index field="ShipVia" name="ShippersOrders" props="clustered"/>
+			<index field="ShipPostalCode" name="ShipPostalCode" props="clustered"/>
+		</table>
+		<table name="Products">
+			<field name="ProductID" type="INTEGER" precision="10" char_length="4" scale="0"/>
+			<field name="ProductName" type="STRING" precision="0" char_length="80" scale="0"/>
+			<field name="ProductName" type="STRING" precision="0" char_length="80" scale="0"/>
+			<field name="SupplierID" type="INTEGER" precision="10" char_length="4" scale="0"/>
+			<field name="CategoryID" type="INTEGER" precision="10" char_length="4" scale="0"/>
+			<field name="QuantityPerUnit" type="STRING" precision="0" char_length="40" scale="0"/>
+			<field name="QuantityPerUnit" type="STRING" precision="0" char_length="40" scale="0"/>
+			<field name="UnitPrice" type="CURRENCY" precision="19" char_length="8" scale="4"/>
+			<field name="UnitsInStock" type="SMALLINT" precision="5" char_length="2" scale="0"/>
+			<field name="UnitsOnOrder" type="SMALLINT" precision="5" char_length="2" scale="0"/>
+			<field name="ReorderLevel" type="SMALLINT" precision="5" char_length="2" scale="0"/>
+			<field name="Discontinued" type="BOOLEAN" precision="1" char_length="1" scale="0"/>
+			<constraint name="FK_Products_Suppliers" kind="FOREIGN" reference="Suppliers"/>
+			<constraint name="FK_Products_Categories" kind="FOREIGN" reference="Categories"/>
+			<constraint name="PK_Products" kind="PRIMARY"/>
+			<constraint name="CK_Products_UnitPrice" kind="CHECK" expression="([UnitPrice] &gt;= 0)"/>
+			<constraint name="CK_ReorderLevel" kind="CHECK" expression="([ReorderLevel] &gt;= 0)"/>
+			<constraint name="CK_UnitsInStock" kind="CHECK" expression="([UnitsInStock] &gt;= 0)"/>
+			<constraint name="CK_UnitsOnOrder" kind="CHECK" expression="([UnitsOnOrder] &gt;= 0)"/>
+			<index field="ProductID" name="PK_Products" props="clustered"/>
+			<index field="CategoryID" name="CategoriesProducts" props="clustered"/>
+			<index field="CategoryID" name="CategoryID" props="clustered"/>
+			<index field="ProductName" name="ProductName" props="clustered"/>
+			<index field="SupplierID" name="SupplierID" props="clustered"/>
+			<index field="SupplierID" name="SuppliersProducts" props="clustered"/>
+		</table>
+		<table name="Order Details">
+			<field name="OrderID" type="INTEGER" precision="10" char_length="4" scale="0"/>
+			<field name="ProductID" type="INTEGER" precision="10" char_length="4" scale="0"/>
+			<field name="UnitPrice" type="CURRENCY" precision="19" char_length="8" scale="4"/>
+			<field name="Quantity" type="SMALLINT" precision="5" char_length="2" scale="0"/>
+			<field name="Discount" type="FLOAT" precision="24" char_length="4" scale="0"/>
+			<constraint name="FK_Order_Details_Orders" kind="FOREIGN" reference="Orders"/>
+			<constraint name="FK_Order_Details_Products" kind="FOREIGN" reference="Products"/>
+			<constraint name="PK_Order_Details" kind="PRIMARY"/>
+			<constraint name="CK_Discount" kind="CHECK" expression="([Discount] &gt;= 0 and [Discount] &lt;= 1)"/>
+			<constraint name="CK_Quantity" kind="CHECK" expression="([Quantity] &gt; 0)"/>
+			<constraint name="CK_UnitPrice" kind="CHECK" expression="([UnitPrice] &gt;= 0)"/>
+			<index name="PK_Order_Details" props="clustered">
+				<item name="OrderID" position="1"/>
+				<item name="ProductID" position="2"/>
+			</index>
+			<index field="OrderID" name="OrderID" props="clustered"/>
+			<index field="OrderID" name="OrdersOrder_Details" props="clustered"/>
+			<index field="ProductID" name="ProductID" props="clustered"/>
+			<index field="ProductID" name="ProductsOrder_Details" props="clustered"/>
+		</table>
+		<table name="CustomerCustomerDemo">
+			<field name="CustomerID" type="STRING" precision="0" char_length="10" scale="0"/>
+			<field name="CustomerTypeID" type="STRING" precision="0" char_length="20" scale="0"/>
+			<constraint name="FK_CustomerCustomerDemo_Customers" kind="FOREIGN" reference="Customers"/>
+			<constraint name="FK_CustomerCustomerDemo" kind="FOREIGN" reference="CustomerDemographics"/>
+			<constraint name="PK_CustomerCustomerDemo" kind="PRIMARY"/>
+			<index name="PK_CustomerCustomerDemo" props="clustered">
+				<item name="CustomerID" position="1"/>
+				<item name="CustomerTypeID" position="2"/>
+			</index>
+		</table>
+		<table name="CustomerDemographics">
+			<field name="CustomerTypeID" type="STRING" precision="0" char_length="20" scale="0"/>
+			<field name="CustomerDesc" type="MEMO" precision="0" char_length="16" scale="0"/>
+			<constraint name="PK_CustomerDemographics" kind="PRIMARY"/>
+			<index field="CustomerTypeID" name="PK_CustomerDemographics" props="clustered"/>
+		</table>
+		<table name="Region">
+			<field name="RegionID" type="INTEGER" precision="10" char_length="4" scale="0"/>
+			<field name="RegionDescription" type="STRING" precision="0" char_length="100" scale="0"/>
+			<constraint name="PK_Region" kind="PRIMARY"/>
+			<index field="RegionID" name="PK_Region" props="clustered"/>
+		</table>
+		<table name="Territories">
+			<field name="TerritoryID" type="STRING" precision="0" char_length="40" scale="0"/>
+			<field name="TerritoryID" type="STRING" precision="0" char_length="40" scale="0"/>
+			<field name="TerritoryDescription" type="STRING" precision="0" char_length="100" scale="0"/>
+			<field name="RegionID" type="INTEGER" precision="10" char_length="4" scale="0"/>
+			<constraint name="FK_Territories_Region" kind="FOREIGN" reference="Region"/>
+			<constraint name="PK_Territories" kind="PRIMARY"/>
+			<index field="TerritoryID" name="PK_Territories" props="clustered"/>
+		</table>
+		<table name="EmployeeTerritories">
+			<field name="EmployeeID" type="INTEGER" precision="10" char_length="4" scale="0"/>
+			<field name="TerritoryID" type="STRING" precision="0" char_length="40" scale="0"/>
+			<field name="TerritoryID" type="STRING" precision="0" char_length="40" scale="0"/>
+			<constraint name="FK_EmployeeTerritories_Employees" kind="FOREIGN" reference="Employees"/>
+			<constraint name="FK_EmployeeTerritories_Territories" kind="FOREIGN" reference="Territories"/>
+			<constraint name="PK_EmployeeTerritories" kind="PRIMARY"/>
+			<index name="PK_EmployeeTerritories" props="clustered">
+				<item name="EmployeeID" position="1"/>
+				<item name="TerritoryID" position="2"/>
+			</index>
+		</table>
+		<table name="sysdiagrams">
+			<field name="name" type="STRING" precision="0" char_length="256" scale="0"/>
+			<field name="name" type="STRING" precision="0" char_length="256" scale="0"/>
+			<field name="principal_id" type="INTEGER" precision="10" char_length="4" scale="0"/>
+			<field name="diagram_id" type="INTEGER" precision="10" char_length="4" scale="0"/>
+			<field name="version" type="INTEGER" precision="10" char_length="4" scale="0"/>
+			<field name="definition" type="BLOB" precision="0" char_length="-1" scale="0"/>
+			<constraint name="PK__sysdiagrams__48CFD27E" kind="PRIMARY"/>
+			<constraint name="UK_principal_name" kind="UNIQUE"/>
+			<index field="diagram_id" name="PK__sysdiagrams__48CFD27E" props="clustered"/>
+			<index name="UK_principal_name" props="clustered">
+				<item name="principal_id" position="1"/>
+				<item name="name" position="2"/>
+			</index>
+		</table>
+		<table name="Employees">
+			<field name="EmployeeID" type="INTEGER" precision="10" char_length="4" scale="0"/>
+			<field name="LastName" type="STRING" precision="0" char_length="40" scale="0"/>
+			<field name="LastName" type="STRING" precision="0" char_length="40" scale="0"/>
+			<field name="FirstName" type="STRING" precision="0" char_length="20" scale="0"/>
+			<field name="FirstName" type="STRING" precision="0" char_length="20" scale="0"/>
+			<field name="Title" type="STRING" precision="0" char_length="60" scale="0"/>
+			<field name="Title" type="STRING" precision="0" char_length="60" scale="0"/>
+			<field name="TitleOfCourtesy" type="STRING" precision="0" char_length="50" scale="0"/>
+			<field name="TitleOfCourtesy" type="STRING" precision="0" char_length="50" scale="0"/>
+			<field name="BirthDate" type="DATETIME" precision="23" char_length="8" scale="3"/>
+			<field name="HireDate" type="DATETIME" precision="23" char_length="8" scale="3"/>
+			<field name="Address" type="STRING" precision="0" char_length="120" scale="0"/>
+			<field name="Address" type="STRING" precision="0" char_length="120" scale="0"/>
+			<field name="City" type="STRING" precision="0" char_length="30" scale="0"/>
+			<field name="City" type="STRING" precision="0" char_length="30" scale="0"/>
+			<field name="Region" type="STRING" precision="0" char_length="30" scale="0"/>
+			<field name="Region" type="STRING" precision="0" char_length="30" scale="0"/>
+			<field name="PostalCode" type="STRING" precision="0" char_length="20" scale="0"/>
+			<field name="PostalCode" type="STRING" precision="0" char_length="20" scale="0"/>
+			<field name="Country" type="STRING" precision="0" char_length="30" scale="0"/>
+			<field name="Country" type="STRING" precision="0" char_length="30" scale="0"/>
+			<field name="HomePhone" type="STRING" precision="0" char_length="48" scale="0"/>
+			<field name="HomePhone" type="STRING" precision="0" char_length="48" scale="0"/>
+			<field name="Extension" type="STRING" precision="0" char_length="8" scale="0"/>
+			<field name="Extension" type="STRING" precision="0" char_length="8" scale="0"/>
+			<field name="Photo" type="BLOB" precision="0" char_length="16" scale="0"/>
+			<field name="Notes" type="MEMO" precision="0" char_length="16" scale="0"/>
+			<field name="ReportsTo" type="INTEGER" precision="10" char_length="4" scale="0"/>
+			<field name="PhotoPath" type="STRING" precision="0" char_length="510" scale="0"/>
+			<field name="PhotoPath" type="STRING" precision="0" char_length="510" scale="0"/>
+			<constraint name="FK_Employees_Employees" kind="FOREIGN" reference="Employees"/>
+			<constraint name="PK_Employees" kind="PRIMARY"/>
+			<constraint name="CK_Birthdate" kind="CHECK" expression="([BirthDate] &lt; getdate())"/>
+			<index field="EmployeeID" name="PK_Employees" props="clustered"/>
+			<index field="LastName" name="LastName" props="clustered"/>
+			<index field="PostalCode" name="PostalCode" props="clustered"/>
+		</table>
+		<table name="Categories">
+			<field name="CategoryID" type="INTEGER" precision="10" char_length="4" scale="0"/>
+			<field name="CategoryName" type="STRING" precision="0" char_length="30" scale="0"/>
+			<field name="CategoryName" type="STRING" precision="0" char_length="30" scale="0"/>
+			<field name="Description" type="MEMO" precision="0" char_length="16" scale="0"/>
+			<field name="Picture" type="BLOB" precision="0" char_length="16" scale="0"/>
+			<constraint name="PK_Categories" kind="PRIMARY"/>
+			<index field="CategoryID" name="PK_Categories" props="clustered"/>
+			<index field="CategoryName" name="CategoryName" props="clustered"/>
+		</table>
+		<table name="Customers">
+			<field name="CustomerID" type="STRING" precision="0" char_length="10" scale="0"/>
+			<field name="CompanyName" type="STRING" precision="0" char_length="80" scale="0"/>
+			<field name="CompanyName" type="STRING" precision="0" char_length="80" scale="0"/>
+			<field name="ContactName" type="STRING" precision="0" char_length="60" scale="0"/>
+			<field name="ContactName" type="STRING" precision="0" char_length="60" scale="0"/>
+			<field name="ContactTitle" type="STRING" precision="0" char_length="60" scale="0"/>
+			<field name="ContactTitle" type="STRING" precision="0" char_length="60" scale="0"/>
+			<field name="Address" type="STRING" precision="0" char_length="120" scale="0"/>
+			<field name="Address" type="STRING" precision="0" char_length="120" scale="0"/>
+			<field name="City" type="STRING" precision="0" char_length="30" scale="0"/>
+			<field name="City" type="STRING" precision="0" char_length="30" scale="0"/>
+			<field name="Region" type="STRING" precision="0" char_length="30" scale="0"/>
+			<field name="Region" type="STRING" precision="0" char_length="30" scale="0"/>
+			<field name="PostalCode" type="STRING" precision="0" char_length="20" scale="0"/>
+			<field name="PostalCode" type="STRING" precision="0" char_length="20" scale="0"/>
+			<field name="Country" type="STRING" precision="0" char_length="30" scale="0"/>
+			<field name="Country" type="STRING" precision="0" char_length="30" scale="0"/>
+			<field name="Phone" type="STRING" precision="0" char_length="48" scale="0"/>
+			<field name="Phone" type="STRING" precision="0" char_length="48" scale="0"/>
+			<field name="Fax" type="STRING" precision="0" char_length="48" scale="0"/>
+			<field name="Fax" type="STRING" precision="0" char_length="48" scale="0"/>
+			<constraint name="PK_Customers" kind="PRIMARY"/>
+			<index field="CustomerID" name="PK_Customers" props="clustered"/>
+			<index field="City" name="City" props="clustered"/>
+			<index field="CompanyName" name="CompanyName" props="clustered"/>
+			<index field="PostalCode" name="PostalCode" props="clustered"/>
+			<index field="Region" name="Region" props="clustered"/>
+		</table>
+		<table name="Shippers">
+			<field name="ShipperID" type="INTEGER" precision="10" char_length="4" scale="0"/>
+			<field name="CompanyName" type="STRING" precision="0" char_length="80" scale="0"/>
+			<field name="CompanyName" type="STRING" precision="0" char_length="80" scale="0"/>
+			<field name="Phone" type="STRING" precision="0" char_length="48" scale="0"/>
+			<field name="Phone" type="STRING" precision="0" char_length="48" scale="0"/>
+			<constraint name="PK_Shippers" kind="PRIMARY"/>
+			<index field="ShipperID" name="PK_Shippers" props="clustered"/>
+		</table>
+		<table name="Suppliers">
+			<field name="SupplierID" type="INTEGER" precision="10" char_length="4" scale="0"/>
+			<field name="CompanyName" type="STRING" precision="0" char_length="80" scale="0"/>
+			<field name="CompanyName" type="STRING" precision="0" char_length="80" scale="0"/>
+			<field name="ContactName" type="STRING" precision="0" char_length="60" scale="0"/>
+			<field name="ContactName" type="STRING" precision="0" char_length="60" scale="0"/>
+			<field name="ContactTitle" type="STRING" precision="0" char_length="60" scale="0"/>
+			<field name="ContactTitle" type="STRING" precision="0" char_length="60" scale="0"/>
+			<field name="Address" type="STRING" precision="0" char_length="120" scale="0"/>
+			<field name="Address" type="STRING" precision="0" char_length="120" scale="0"/>
+			<field name="City" type="STRING" precision="0" char_length="30" scale="0"/>
+			<field name="City" type="STRING" precision="0" char_length="30" scale="0"/>
+			<field name="Region" type="STRING" precision="0" char_length="30" scale="0"/>
+			<field name="Region" type="STRING" precision="0" char_length="30" scale="0"/>
+			<field name="PostalCode" type="STRING" precision="0" char_length="20" scale="0"/>
+			<field name="PostalCode" type="STRING" precision="0" char_length="20" scale="0"/>
+			<field name="Country" type="STRING" precision="0" char_length="30" scale="0"/>
+			<field name="Country" type="STRING" precision="0" char_length="30" scale="0"/>
+			<field name="Phone" type="STRING" precision="0" char_length="48" scale="0"/>
+			<field name="Phone" type="STRING" precision="0" char_length="48" scale="0"/>
+			<field name="Fax" type="STRING" precision="0" char_length="48" scale="0"/>
+			<field name="Fax" type="STRING" precision="0" char_length="48" scale="0"/>
+			<field name="HomePage" type="MEMO" precision="0" char_length="16" scale="0"/>
+			<constraint name="PK_Suppliers" kind="PRIMARY"/>
+			<index field="SupplierID" name="PK_Suppliers" props="clustered"/>
+			<index field="CompanyName" name="CompanyName" props="clustered"/>
+			<index field="PostalCode" name="PostalCode" props="clustered"/>
+		</table>
+	</tables>
+</dbd_schema>

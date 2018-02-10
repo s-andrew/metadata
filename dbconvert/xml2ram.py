@@ -10,7 +10,6 @@ from dbconvert.rammodel import Domain, Table, Field, Index, IndexItem, Constrain
 
 __all__ = ["xml2ram"]
 
-
 def xml2ram(xml):
     """
     Create object Schema from xml.dom.minidom.Document
@@ -264,7 +263,7 @@ def _parseConstraints(xml):
             elif attrName.lower() == "kind":
                 tmp.kind = attrValue
             elif attrName.lower() == "items":
-                tmp.items = attrValue
+                tmp.items = [attrValue]
             elif attrName.lower() == "props":
                 for prop in attrValue.split(", "):
                     if prop == "has_value_edit":

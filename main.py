@@ -4,9 +4,10 @@ import sqlite3
 from dbconvert import (xml2ram,
                        ram2xml,
                        ram2sqlite,
-                       createMSSQLDDL,
+                       sqlite2ram,
                        createPostgresqlDDL,
                        createSchemaFromMSSQL)
+from dbconvert.rammodel import Domain
 
 #TODO: ARGPARSE
 
@@ -20,8 +21,8 @@ xml = md.parse("tasks.xml")
 #==============================================================================
 #  Создание объекта Schema из XML
 #==============================================================================
-schema = xml2ram(xml)
-
+schema = xml2ram(xml)        
+    
 
 #==============================================================================
 #  Создание XML из объекта Schema
@@ -33,20 +34,16 @@ resXML = ram2xml(schema)
 
 #==============================================================================
 #  Создание соединения с базой при помощи sqlite3
-#==============================================================================
-#connect = sqlite3.connect("test_db.db")
-connect = sqlite3.connect(":memory:")
-
-
-#==============================================================================
 #  Заполнение базы данными из объекта Schema
-#==============================================================================
-ram2sqlite(schema, connect)
-
-
-#==============================================================================
 #  Закрытие соединения с базой
 #==============================================================================
+#connect = sqlite3.connect("test_db1.db")
+connect = sqlite3.connect(":memory:")
+ram2sqlite(schema, connect)
+connect.commit()
+
+d = sqlite2ram(schema.name, connect)
+
 connect.close()
 del connect
 
@@ -54,22 +51,21 @@ del connect
 #==============================================================================
 #  Создания DDL для PostgreSQL
 #==============================================================================
+schema.name = "mssql"
 postgresqlDDL = createPostgresqlDDL(schema)
 
-#import psycopg2
-#connect = psycopg2.connect("dbname='{dbname}' user='{user}' host='{host}' password='{pwd}'".format(
-#            dbname = "Test",
-#            user = "postgres",
-#            host = "localhost",
-#            pwd = "3korif8245ef"
-#        ))
+import psycopg2
+connect = psycopg2.connect("dbname='{dbname}' user='{user}' host='{host}' password='{pwd}'".format(
+            dbname = "Test",
+            user = "postgres",
+            host = "localhost",
+            pwd = "3korif8245ef"
+        ))
 #
 #cursor = connect.cursor()
 #cursor.execute(postgresqlDDL)
 #connect.close()
 #del connect
-
-
 
 #==============================================================================
 #  Создание DDL для Microsoft SQL Server

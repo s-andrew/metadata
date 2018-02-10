@@ -56,10 +56,10 @@ def getType(domain):
 
 def getPrimaryKey(schemaName, tableName, constraint):
     return """ALTER TABLE \"{schema_name}\".\"{table_name}\"
-    ADD {name} PRIMARY KEY (\"{items}\")""".format(
+    ADD PRIMARY KEY (\"{items}\")""".format(
             schema_name = schemaName,
             table_name = tableName,
-            name = "\"" + constraint.name + "\"" if constraint.name is not None else "",
+#            name = "CONSTRAINT \"" + constraint.name + "\"" if constraint.name is not None else "",
             items = constraint.items
             )
 
@@ -89,7 +89,7 @@ def getUniqueConstraint(schemaName, tableName, constraint):
     ADD {name} UNIQUE (\"{items}\")""".format(
             schema_name = schemaName,
             table_name = tableName,
-            name = "\"" + constraint.name + "\"" if constraint.name is not None else "",
+            name = "CONSTRAINT \"" + constraint.name + "\"" if constraint.name is not None else "",
             items = constraint.items
             )
     
@@ -204,8 +204,8 @@ def createField(schemaName, field):
         field: object Field
     Return: str
     """
-    print(field.domain)
-    print(field.name, field.domain if isinstance(field.domain, str) else field.domain.type)
+#    print(field.domain)
+#    print(field.name, field.domain if isinstance(field.domain, str) else field.domain.type)
     return "\"{name}\" \"{schema_name}\".\"{type_}\"".format(
             name = field.name,
             schema_name = schemaName,

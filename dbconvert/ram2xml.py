@@ -239,7 +239,10 @@ def _createConstraintNode(xml, constraint):
     if constraint.kind is not None:
         node.setAttribute("kind", constraint.kind)
     if constraint.items is not None:
-        node.setAttribute("items", constraint.items)
+        if len(constraint.items) == 1:
+              node.setAttribute("items", constraint.items[0])
+        else:
+            pass # Когда много item'ов
     if constraint.reference_type is not None:
         node.setAttribute("reference_type", constraint.reference_type)
     if constraint.reference is not None:
