@@ -6,7 +6,12 @@ Created on Sat Dec  2 10:26:11 2017
 """
 from itertools import groupby, chain
 
-from dbconvert.rammodel import Domain, Table, Field, Index, IndexItem, Constraint, Schema
+from dbconvert.rammodel.domain import Domain
+from dbconvert.rammodel.table import Table
+from dbconvert.rammodel.field import Field
+from dbconvert.rammodel.index import Index, IndexItem
+from dbconvert.rammodel.constraint import Constraint
+from dbconvert.rammodel.schema import Schema
 
 
 #simpleTypes = dict(
@@ -31,6 +36,7 @@ from dbconvert.rammodel import Domain, Table, Field, Index, IndexItem, Constrain
 types = dict(
         bit = "BOOLEAN",
         datetime = "DATETIME",
+        date = "DATE",
         image = "BLOB",
         int = "INTEGER",
         money = "CURRENCY",
@@ -92,6 +98,7 @@ def _fieldGenerator(tableId, cursor):
     LEFT JOIN sys.types AS TP
     ON COL.system_type_id = TP.system_type_id
     WHERE COL.object_id = {table_id}
+      AND TP.name != 'sysname'
     """.format(table_id = tableId))
     for field in cursor.fetchall():
         name, type_name, max_length, precision, scale, is_nullable, default_value = field
@@ -171,13 +178,40 @@ def _foreignKeyGenerator(tableId, cursor):
 
 def _primaryAndUniqueKeyGenerator(tableId, cursor):
     cursor.execute("""
-    SELECT  KC.name, KC.type, COL.name
-    FROM sys.key_constraints AS KC
-    JOIN sys.columns AS COL
-    ON KC.unique_index_id = COL.column_id
-    AND KC.parent_object_id = COL.object_id
-    WHERE KC.parent_object_id = {table_id}
+    SELECT kc.name
+    	  ,kc.type
+    	  ,KCU.COLUMN_NAME as items
+    FROM sys.tables AS t
+    JOIN sys.key_constraints AS kc
+    ON t.object_id = kc.parent_object_id
+    JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS KCU
+    ON KCU.CONSTRAINT_NAME = kc.name
+    WHERE t.object_id = {table_id}
     """.format(table_id = tableId))
+    
+    for key, group in groupby(cursor.fetchall(), lambda x: (x[0], x[1])):
+        constraint = Constraint()
+        errors = []
+        constraint.name, kind = key
+        if kind is not None:
+            if kind == "PK":
+                constraint.kind = "PRIMARY"
+            elif kind == "UQ":
+                constraint.kind = "UNIQUE"
+            else:
+                errors.append("Key in table with id={} has unknown kind ({kind})".format(tableId, kind))
+        else:
+            errors.append("Key in table with id={} has not kind".format(tableId))
+        constraint.items = list(map(lambda x: x[2], group))
+        
+        if errors != []:
+            raise ValueError("\n".join(errors))
+            
+        yield constraint
+        
+    
+    
+    
     for name, kind, items in cursor.fetchall():
         tmp = Constraint()
         errors = []
@@ -211,7 +245,7 @@ def _checkConstraintGenerator(tableId, cursor):
     for name, exp, item in cursor.fetchall():
         tmp = Constraint()
         tmp.name = name
-        tmp.expression = exp
+        tmp.expression = exp.replace('[', '"').replace(']', '"').replace('getdate()', 'current_date')
         if item is not None:
             tmp.items = item
         else:

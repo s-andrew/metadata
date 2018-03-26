@@ -8,9 +8,19 @@ import functools
 
 
 from dbconvert import minidom_fixed as md
-from dbconvert.rammodel import Domain, Table, Field, Index, Constraint, Schema
+from dbconvert.rammodel.domain import Domain
+from dbconvert.rammodel.table import Table
+from dbconvert.rammodel.field import Field
+from dbconvert.rammodel.index import Index, IndexItem
+from dbconvert.rammodel.constraint import Constraint
+from dbconvert.rammodel.schema import Schema
 
 __all__ = ["ram2xml"]
+
+
+
+
+
 
 def ram2xml(schema):
     """
@@ -30,13 +40,13 @@ def ram2xml(schema):
     # Create node for the schema
     node = xml.createElement("dbd_schema")
     if schema.fulltext_engine is not None:
-        node.setAttribute("fulltext_engine", schema.fulltext_engine)
+        node.setAttribute("fulltext_engine", str(schema.fulltext_engine))
     if schema.version is not None:
-        node.setAttribute("version", schema.version)
+        node.setAttribute("version", str(schema.version))
     if schema.name is not None:
-        node.setAttribute("name", schema.name)
+        node.setAttribute("name", str(schema.name))
     if schema.descr is not None:
-        node.setAttribute("description", schema.descr)
+        node.setAttribute("description", str(schema.descr))
     node.appendChild(xml.createElement("custom"))
 
     domains = xml.createElement("domains")
@@ -77,19 +87,19 @@ def _createDomainNode(xml, domain, node=None):
         
     #Set attributes
     if domain.name is not None:
-        node.setAttribute("name", domain.name)
+        node.setAttribute("name", str(domain.name))
     if domain.descr is not None:
-        node.setAttribute("description", domain.descr)
+        node.setAttribute("description", str(domain.descr))
     if domain.type is not None:
-        node.setAttribute("type", domain.type)
+        node.setAttribute("type", str(domain.type))
     if domain.align is not None:
-        node.setAttribute("align", domain.align)
+        node.setAttribute("align", str(domain.align))
     if domain.width is not None:
-        node.setAttribute("width", domain.width)
+        node.setAttribute("width", str(domain.width))
     if domain.length is not None:
-        node.setAttribute("length", domain.length)
+        node.setAttribute("length", str(domain.length))
     if domain.precision is not None:
-        node.setAttribute("precision", domain.precision)
+        node.setAttribute("precision", str(domain.precision))
         
     #Create props
     propsList = []
@@ -109,11 +119,11 @@ def _createDomainNode(xml, domain, node=None):
     
     # Set attributes again
     if domain.char_length is not None:
-        node.setAttribute("char_length", domain.char_length)
+        node.setAttribute("char_length", str(domain.char_length))
     if domain.length is not None:
-        node.setAttribute("length", domain.length)
+        node.setAttribute("length", str(domain.length))
     if domain.scale is not None:
-        node.setAttribute("scale", domain.scale)
+        node.setAttribute("scale", str(domain.scale))
     return node
 
 
@@ -132,9 +142,9 @@ def _createTableNode(xml, table):
     
     # Set attributes
     if table.name is not None:
-        node.setAttribute("name", table.name)
+        node.setAttribute("name", str(table.name))
     if  table.descr is not None:
-        node.setAttribute("description", table.descr)
+        node.setAttribute("description", str(table.descr))
         
     # Create props
     propsList = []
@@ -150,9 +160,9 @@ def _createTableNode(xml, table):
         
     # Set attributes again
     if table.ht_table_flags is not None:
-        node.setAttribute("ht_table_flags", table.ht_table_flags)
+        node.setAttribute("ht_table_flags", str(table.ht_table_flags))
     if table.access_level is not None:
-        node.setAttribute("access_level", table.access_level)
+        node.setAttribute("access_level", str(table.access_level))
 
     # Append fields elements
     createField = functools.partial(_createFieldNode, xml)
@@ -186,16 +196,16 @@ def _createFieldNode(xml, field):
     
     # Set attributes
     if field.name is not None:
-        node.setAttribute("name", field.name)
+        node.setAttribute("name", str(field.name))
     if field.rname is not None:
-        node.setAttribute("rname", field.rname)
+        node.setAttribute("rname", str(field.rname))
     if field.domain is not None:
         if isinstance(field.domain, Domain):
             node = _createDomainNode(xml, field.domain, node)
         else:
             node.setAttribute("domain", str(field.domain))
     if field.descr is not None:
-        node.setAttribute("description", field.descr)        
+        node.setAttribute("description", str(field.descr))
         
     # Create props
     propsList = []
@@ -235,20 +245,20 @@ def _createConstraintNode(xml, constraint):
     
     # Set attributes
     if constraint.name is not None:
-        node.setAttribute("name", constraint.name)
+        node.setAttribute("name", str(constraint.name))
     if constraint.kind is not None:
-        node.setAttribute("kind", constraint.kind)
+        node.setAttribute("kind", str(constraint.kind))
     if constraint.items is not None:
         if len(constraint.items) == 1:
-              node.setAttribute("items", constraint.items[0])
+              node.setAttribute("items", str(constraint.items[0]))
         else:
             pass # Когда много item'ов
     if constraint.reference_type is not None:
-        node.setAttribute("reference_type", constraint.reference_type)
+        node.setAttribute("reference_type", str(constraint.reference_type))
     if constraint.reference is not None:
-        node.setAttribute("reference", constraint.reference)
+        node.setAttribute("reference", str(constraint.reference))
     if constraint.expression is not None:
-        node.setAttribute("expression", constraint.expression)
+        node.setAttribute("expression", str(constraint.expression))
         
     # Create props
     propsList = []
@@ -280,7 +290,7 @@ def _createIndexNode(xml, index):
         node = xml.createElement("index")
         # Check single field
         if len(index.fields) == 1:
-            node.setAttribute("field", index.fields[0].name)
+            node.setAttribute("field", str(index.fields[0].name))
         else:
             # ветка для случая, когда в индекс входит больше одного поля
             createItem = functools.partial(_createIndexItem, xml)
@@ -289,7 +299,7 @@ def _createIndexNode(xml, index):
         
         # Set attributes
         if index.name is not None:
-            node.setAttribute("name", index.name)
+            node.setAttribute("name", str(index.name))
             
         # Create props
         propsList = []
@@ -320,7 +330,7 @@ def _createIndexItem(xml, item):
     Return: DOM element item
     """
     node = xml.createElement("item")
-    node.setAttribute("name", item.name)
+    node.setAttribute("name", str(item.name))
     node.setAttribute("position", str(item.position))
     if item.desc:
         node.setAttribute("desc")

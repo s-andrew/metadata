@@ -5,7 +5,12 @@ Created on Sat Oct 21 11:43:51 2017
 @author: 1
 """
 
-from dbconvert.rammodel import Domain, Table, Field, Index, IndexItem, Constraint, Schema
+from dbconvert.rammodel.domain import Domain
+from dbconvert.rammodel.table import Table
+from dbconvert.rammodel.field import Field
+from dbconvert.rammodel.index import Index, IndexItem
+from dbconvert.rammodel.constraint import Constraint
+from dbconvert.rammodel.schema import Schema
 
 
 __all__ = ["xml2ram"]

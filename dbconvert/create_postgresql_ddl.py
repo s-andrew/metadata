@@ -17,10 +17,12 @@ simpleTypes = dict(
         DATE = "date",
         TIME = "time",
         MEMO = "text",
+        DATETIME = "timestamp"
         )
 
 precisionAndScaleTypes = dict(
         FLOAT = "numeric",
+        CURRENCY = "numeric",
         )
 
 lengthTypes = dict(
@@ -39,28 +41,33 @@ def getType(domain):
         elif domain.char_length is not None:
             length = domain.char_length
         else:
-            raise ValueError("Domain with type {} haven't length or char_length".format(domain.type))
+            return lengthTypes[domain.type]
+#            raise ValueError("Domain with type {} haven't length or char_length".format(domain.type))
         return "{t}({n})".format(
                 t = lengthTypes[domain.type],
                 n = length)
     if domain.type in precisionAndScaleTypes:
         if domain.precision is not None:
-            params = domain.precision
+            params = str(domain.precision)
             if domain.scale is not None:
-                params += ", " + domain.scale
+                params += ", " + str(domain.scale)
+        else:
+            return precisionAndScaleTypes[domain.type]
         res = "{t}{p}".format(
                 t = precisionAndScaleTypes[domain.type],
-                p = "(" + params + ")" if params is not None else "")
+                p = "(" + str(params) + ")" if params is not None else "")
+        return res
+    raise ValueError("Unknown type {}".format(domain.type))
     return res if res is not None else "text"
     
 
 def getPrimaryKey(schemaName, tableName, constraint):
     return """ALTER TABLE \"{schema_name}\".\"{table_name}\"
-    ADD PRIMARY KEY (\"{items}\")""".format(
+    ADD PRIMARY KEY ({items})""".format(
             schema_name = schemaName,
             table_name = tableName,
 #            name = "CONSTRAINT \"" + constraint.name + "\"" if constraint.name is not None else "",
-            items = constraint.items
+            items = ", ".join(map(lambda x: '"' + x + '"', constraint.items))
             )
 
 def getForeignKey(schemaName, tableName, constraint):
@@ -81,16 +88,16 @@ def getCheckConstraint(schemaName, tableName, constraint):
             table_name = tableName,
             name = "CONSTRAINT \"" + constraint.name + "\"" if constraint.name is not None else "",
             items = constraint.items,
-            expression = constraint.reference
+            expression = constraint.expression
             )
     
 def getUniqueConstraint(schemaName, tableName, constraint):
     return """ALTER TABLE \"{schema_name}\".\"{table_name}\"
-    ADD {name} UNIQUE (\"{items}\")""".format(
+    ADD {name} UNIQUE ({items})""".format(
             schema_name = schemaName,
             table_name = tableName,
             name = "CONSTRAINT \"" + constraint.name + "\"" if constraint.name is not None else "",
-            items = constraint.items
+            items = ", ".join(map(lambda x: '"' + x + '"', constraint.items))
             )
     
 constraints = dict(
@@ -129,7 +136,8 @@ def createPostgresqlDDL(schema):
     
     createSchemaDomainTablesIndecesStr = ";\n".join(itertools.chain(domains,
                                                                      tables,
-                                                                     indeces)) + ";\n"
+                                                                     indeces
+                                                                     )) + ";\n"
     createPrimaryKeysStr = ";\n".join(primaryKeys) + ";\n"
     createConstraintsStr = ";\n".join(constraints) + ";\n"
     
@@ -142,7 +150,8 @@ createSchemaDomainTablesIndecesStr +\
 createPrimaryKeysStr +\
 createConstraintsStr +\
 "COMMIT;"
-    
+
+
 
 def createSchema(schema):
     """
@@ -206,10 +215,10 @@ def createField(schemaName, field):
     """
 #    print(field.domain)
 #    print(field.name, field.domain if isinstance(field.domain, str) else field.domain.type)
-    return "\"{name}\" \"{schema_name}\".\"{type_}\"".format(
+#    print(field.__dict__)
+    return "\"{name}\" {type_}".format(
             name = field.name,
-            schema_name = schemaName,
-            type_ = field.domain if isinstance(field.domain, str) else getType(field.domain)
+            type_ = '"' + schemaName + '"."' +  field.domain + '"' if isinstance(field.domain, str) else getType(field.domain)
             )
 
 
@@ -222,12 +231,12 @@ def createIndex(schemaName, tableName, index):
         field: object Index
     Return: str
     """
-    return """CREATE {unique} INDEX{name} ON \"{schema_name}\".\"{tableName}\" (\"{field}\")""".format(
+    return """CREATE {unique} INDEX {name} ON \"{schema_name}\".\"{tableName}\" ({fields})""".format(
             unique = "UNIQUE" if index.uniqueness else "",
             schema_name = schemaName,
-            name = "\"" + index.name + "\"" if index.name is not None else "",
+            name = "\"" + tableName + "__" + index.name + "\"" if index.name is not None else "",
             tableName = tableName,
-            field = ", ".join(item.name for item in index.fields)
+            fields = ", ".join(map(lambda index: '"' + str(index.name) + '"', index.fields))
             )
     
 

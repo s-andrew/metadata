@@ -6,10 +6,10 @@ Created on Sat Oct 21 17:19:55 2017
 """
 
 
-from itertools import chain
+from itertools import chain, starmap
 
 from dbconvert.sqlite_ddl import SQL_DBD_Init
-from dbconvert.rammodel import Domain#, Table, Field, Index, IndexItem, Constraint, Schema
+from dbconvert.rammodel.domain import Domain
 
 def ram2sqlite(schema, connect):
 #==============================================================================
@@ -88,65 +88,129 @@ def ram2sqlite(schema, connect):
     
 #===== Fields =================================================================
 
+#    insertFields = """
+#    INSERT INTO dbd$fields VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+#    """
+#    
+#    createTableField = """
+#    CREATE TABLE dbd$TableField(
+#    table_name VARCHAR NOT NULL,
+#    field_name VARCHAR NOT NULL,
+#    field_position INTEGER NOT NULL);
+#    """
+#    
+#    insertTableField = """
+#    INSERT INTO dbd$TableField VALUES(?, ?, ?);
+#    """
+#    
+#    updateFieldsFromTableField = """
+#    UPDATE dbd$fields
+#    SET table_id = (
+#    SELECT dbd$tables.id
+#    FROM dbd$fields as fd
+#    JOIN dbd$TableField ON fd.name = dbd$TableField.field_name
+#    JOIN dbd$tables ON dbd$tables.name = dbd$TableField.table_name
+#    WHERE fd.name = dbd$fields.name),
+#    position = (
+#    SELECT dbd$TableField.field_position
+#    FROM dbd$fields as fd
+#    JOIN dbd$TableField ON fd.name = dbd$TableField.field_name
+#    WHERE fd.name = dbd$fields.name)
+#    WHERE table_id = -1;
+#    """
+#    
+#    dropTableField  = """
+#    DROP TABLE dbd$TableField;
+#    """
+#    
+#    createFieldDomain = """
+#    CREATE TABLE dbd$FieldDomain(
+#    field_name VARCHAR NOT NULL,
+#    domain_name VARCHAR NOT NULL);
+#    """
+#    
+#    insertFieldDomain = """
+#    INSERT INTO dbd$FieldDomain VALUES (?, ?);
+#    """
+#    
+#    updateFieldsFromFieldDomain = """
+#    UPDATE dbd$fields
+#    SET domain_id = (
+#    SELECT dbd$domains.id
+#    FROM dbd$fields as fd
+#    JOIN dbd$FieldDomain ON fd.name = dbd$FieldDomain.field_name
+#    JOIN dbd$domains ON dbd$domains.name = dbd$FieldDomain.domain_name)
+#    WHERE domain_id = -1;
+#    """
+#    
+#    dropFieldDomain = """
+#    DROP TABLE dbd$FieldDomain;
+#    """
+#    
+#    deleteDomainsFakeName = """
+#    UPDATE dbd$domains
+#    SET name = null
+#    WHERE name LIKE 'dbd$FAKE%'
+#    """
+
+    selectTableID = """
+    SELECT id FROM dbd$tables
+    WHERE name = ?
+    """
+
     insertFields = """
-    INSERT INTO dbd$fields VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-    """
-    
-    createTableField = """
-    CREATE TABLE dbd$TableField(
-    table_name VARCHAR NOT NULL,
-    field_name VARCHAR NOT NULL,
-    field_position INTEGER NOT NULL);
-    """
-    
-    insertTableField = """
-    INSERT INTO dbd$TableField VALUES(?, ?, ?);
-    """
-    
-    updateFieldsFromTableField = """
-    UPDATE dbd$fields
-    SET table_id = (
-    SELECT dbd$tables.id
-    FROM dbd$fields as fd
-    JOIN dbd$TableField ON fd.name = dbd$TableField.field_name
-    JOIN dbd$tables ON dbd$tables.name = dbd$TableField.table_name
-    WHERE fd.name = dbd$fields.name),
-    position = (
-    SELECT dbd$TableField.field_position
-    FROM dbd$fields as fd
-    JOIN dbd$TableField ON fd.name = dbd$TableField.field_name
-    WHERE fd.name = dbd$fields.name)
-    WHERE table_id = -1;
-    """
-    
-    dropTableField  = """
-    DROP TABLE dbd$TableField;
-    """
+    INSERT INTO dbd$fields (
+       table_id,
+       position,
+       name,
+       russian_short_name,
+       description,
+       domain_id,
+       can_input,
+       can_edit,
+       show_in_grid,
+       show_in_details,
+       is_mean,
+       autocalculated,
+       required,
+       uuid
+    )
+       VALUES ({});
+    """.format(", ".join("?" * 14))
     
     createFieldDomain = """
-    CREATE TABLE dbd$FieldDomain(
+    CREATE TABLE dbd$field_domain(
     field_name VARCHAR NOT NULL,
     domain_name VARCHAR NOT NULL);
     """
     
-    insertFieldDomain = """
-    INSERT INTO dbd$FieldDomain VALUES (?, ?);
+    dropFieldDomain = """
+    DROP TABLE dbd$field_domain;
     """
     
+    insertFieldDomain = """
+    INSERT INTO dbd$field_domain (
+     field_name,
+     domain_name
+     )
+     VALUES (?, ?);
+    """
+        
     updateFieldsFromFieldDomain = """
     UPDATE dbd$fields
     SET domain_id = (
-    SELECT dbd$domains.id
-    FROM dbd$fields as fd
-    JOIN dbd$FieldDomain ON fd.name = dbd$FieldDomain.field_name
-    JOIN dbd$domains ON dbd$domains.name = dbd$FieldDomain.domain_name)
-    WHERE domain_id = -1;
+    SELECT d.id
+      FROM dbd$fields AS f
+      JOIN dbd$field_domain AS fd ON
+              f.name = fd.field_name
+      JOIN dbd$domains AS d ON
+              d.name = fd.domain_name
+      where f.name = dbd$fields.name
+    )
+    where dbd$fields.table_id = ?
     """
     
-    dropFieldDomain = """
-    DROP TABLE dbd$FieldDomain;
-    """
-    
+    deleteFieldDomain = "DELETE FROM dbd$field_domain;"
     
 #==== Constraints =============================================================
 
@@ -233,8 +297,14 @@ def ram2sqlite(schema, connect):
     DROP TABLE dbd$ConstraintReference;
     """
     
+    deleteConstraintsFakeName = """
+    UPDATE dbd$constraints
+    SET name = null
+    WHERE name LIKE 'dbd$FAKE%'
+    """
+    
 
-#==== indices =================================================================
+#==== Indices =================================================================
 
     insertindices = """
     INSERT INTO dbd$indices VALUES (?, ?, ?, ?, ?, ?);
@@ -304,18 +374,29 @@ def ram2sqlite(schema, connect):
     DROP TABLE dbd$IndexDetailFieldTable;
     """
 
-
+    deleteIndicesFakeName = """
+    UPDATE dbd$indices
+    SET name = null
+    WHERE name LIKE 'dbd$FAKE%'
+    """
+    
+    
+    
 
     cursor = connect.cursor()
     cursor.executescript(SQL_DBD_Init)
     # Schema
     cursor.execute(insertSchema, (schema.name,))
+    print("Schema")
+    print(insertSchema)
+    print(schema.name)
+    print("=" * 50)
     # Domains
     nonameDomains = []
     for table in schema.tables:
         for field in filter(lambda field: isinstance(field.domain, Domain), table.fields):
             tmpDomain = field.domain
-            domainName = "__".join([schema.name, table.name, field.name]) + "__" + str(id(field.domain))
+            domainName = "__".join(["dbd$FAKE", schema.name, table.name, field.name]) + "__" + str(id(field.domain))
             tmpDomain.name = domainName
             field.domain = domainName
             nonameDomains.append(tmpDomain)
@@ -326,7 +407,9 @@ def ram2sqlite(schema, connect):
     cursor.executemany(insertDomainType, ((domain.name, domain.type) for domain in domains))
     cursor.execute(updateDomainsFromDomainType)
     cursor.execute(dropDomainType)
+#    cursor.execute(deleteDomainsFakeName)
     
+
     # Tables
     cursor.executemany(insertTables, map(tableMapper, schema.tables))
     cursor.execute(createSchemaTable)
@@ -334,19 +417,18 @@ def ram2sqlite(schema, connect):
     cursor.execute(updateTablesFromSchemaTable)
     cursor.execute(dropSchemaTable)
     
+    
     # Fields
+    cursor.execute(createFieldDomain)
     for table in schema.tables:
-        cursor.executemany(insertFields, map(fieldMapper, table.fields))
+        cursor.execute(selectTableID, (table.name,))
+        table_id = cursor.fetchone()[0]
+        cursor.executemany(insertFields, starmap(lambda pos, x: (table_id, pos, *fieldMapper(x)), enumerate(table.fields)))
         
-        cursor.execute(createTableField)
-        cursor.executemany(insertTableField, ((table.name, field.name, i) for i, field in enumerate(table.fields)))
-        cursor.execute(updateFieldsFromTableField)
-        cursor.execute(dropTableField)
-        
-        cursor.execute(createFieldDomain)
-        cursor.executemany(insertFieldDomain, ((field.name, field.domain) for field in table.fields))
-        cursor.execute(updateFieldsFromFieldDomain)
-        cursor.execute(dropFieldDomain)
+        cursor.executemany(insertFieldDomain, ( (field.name, field.domain) for field in table.fields))
+        cursor.execute(updateFieldsFromFieldDomain, (table_id,))
+        cursor.execute(deleteFieldDomain)
+    cursor.execute(dropFieldDomain)
         
     
     # Constraints
@@ -354,7 +436,7 @@ def ram2sqlite(schema, connect):
         
         for constraint in table.constraints:
             if constraint.name == None:
-                constraint.name = "__".join([schema.name, table.name, constraint.kind, *constraint.items])
+                constraint.name = "__".join(["dbd$FAKE", schema.name, table.name, constraint.kind, *constraint.items])
         
         cursor.executemany(insertConstraint, map(constraintMapper, table.constraints))
         # Constraints <--> Tables
@@ -378,12 +460,14 @@ def ram2sqlite(schema, connect):
         cursor.execute(updateConstraintFromConstraintReference)
         cursor.execute(dropConstraintReference)
         
+        cursor.execute(deleteConstraintsFakeName)
+        
     
     # Indices
     for table in schema.tables:
         for index in table.indexes:
             if index.name is None:
-                index.name = "__".join([schema.name, table.name, *[item.name for item in index.fields]])
+                index.name = "__".join(["dbd$FAKE", schema.name, table.name, *[item.name for item in index.fields]])
         
         cursor.executemany(insertindices, map(indexMapper, table.indexes))
         cursor.execute(createTableIndex)
@@ -400,6 +484,8 @@ def ram2sqlite(schema, connect):
         
         cursor.execute(insertIndexDetailsFromIndexDetailFieldTable)
         cursor.execute(dropIndexDetailFieldTable)
+        
+        cursor.execute(deleteIndicesFakeName)
         
     
     
@@ -443,23 +529,39 @@ def tableMapper(table):
     )
     
 def fieldMapper(field):
-    return (
-        None, #id
-        -1, #table_id
-        -1, #position
-        field.name,
-        field.rname,
-        field.descr,
-        -1, #domain_id
-        field.input,
-        field.edit,
-        field.show_in_grid,
-        None, #show_in_details
-        field.is_mean,
-        field.autocalculated,
-        field.required,
-        id(field) #uuid
+    return(
+    field.name,
+    field.rname,
+    field.descr,
+    -1,
+    field.input,
+    field.edit,
+    field.show_in_grid,
+    field.show_in_details,
+    field.is_mean,
+    field.autocalculated,
+    field.required,
+    id(field)
     )
+    
+#def fieldMapper(field):
+#    return (
+#        None, #id
+#        -1, #table_id
+#        -1, #position
+#        field.name,
+#        field.rname,
+#        field.descr,
+#        -1, #domain_id
+#        field.input,
+#        field.edit,
+#        field.show_in_grid,
+#        None, #show_in_details
+#        field.is_mean,
+#        field.autocalculated,
+#        field.required,
+#        id(field) #uuid
+#    )
     
 def constraintMapper(constraint):
     return (
