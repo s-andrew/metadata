@@ -5,6 +5,7 @@ Created on Sat Dec  2 10:26:11 2017
 @author: 1
 """
 from itertools import groupby, chain
+import logging
 
 from dbconvert.rammodel.domain import Domain
 from dbconvert.rammodel.table import Table
@@ -51,15 +52,24 @@ types = dict(
         )
 
 
-
+module_logger = logging.getLogger("dbconvert.read_mssql_metadata")
 
 
 def createSchemaFromMSSQL(schemaName, connect):
+    logger = logging.getLogger("dbconvert.read_mssql_metadata.createSchemaFromMSSQL")
+    logger.info("Start reading metadata from SQL Serve")
     cursor = connect.cursor()
     schema = Schema()
     schema.name = schemaName
     schema.tables = list(_tableGenerator(schemaName, cursor))
-    
+
+    table_count = len(schema.tables)
+    field_count = sum(map(lambda table: len(table.fields), schema.tables))
+    index_count = sum(map(lambda table: len(table.indexes), schema.tables))
+    constraint_count = sum(map(lambda table: len(table.constraints), schema.tables))
+
+    logger.info("Get %d tables, %d fields, %d indeces, %d constraints" % (table_count, field_count, index_count, constraint_count))
+
     return schema
 
 
