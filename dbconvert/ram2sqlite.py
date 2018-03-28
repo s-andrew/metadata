@@ -452,8 +452,9 @@ def ram2sqlite(schema, connect):
             cursor.executemany(insertConstraintDetailField, dataForInsert)
             
         cursor.execute(insertConstraintDetailsFromConstraintDetailField)
-        cursor.execute(dropConstraintDetailField)
-        
+        # cursor.execute(dropConstraintDetailField)
+        break
+
         # Constraints <--> ReferencesTables
         cursor.execute(createConstraintReference)
         cursor.executemany(insertConstraintReference, ((constraint.name, constraint.reference) for constraint in table.constraints if constraint.reference is not None))

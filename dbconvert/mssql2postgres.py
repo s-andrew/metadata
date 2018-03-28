@@ -108,6 +108,6 @@ def mssql2postgres(schema_name, mssql_connect, postgres_connect, chunk_size):
 
     logger.info("Migration complete, row count %d" % row_count)
 
-    return postgresDDL
+    return postgresDDL, schema
 
 
